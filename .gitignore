@@ -130,3 +130,6 @@ dmypy.json
 
 # remote stuffs
 remote.toml
+
+# vscode
+.vscode/
