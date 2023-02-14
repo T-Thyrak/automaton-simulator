@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# remote stuffs
+remote.toml
+
+# vscode
+.vscode/
