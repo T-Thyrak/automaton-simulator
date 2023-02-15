@@ -19,8 +19,8 @@ def start(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     """Main function."""
     prepare()
-    
-    
+
+    # hello world
     token = os.getenv('TG_ACCESS_TOKEN') # get the token from the environment variable
     
     # create the updater
