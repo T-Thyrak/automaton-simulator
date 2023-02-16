@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Updater, CallbackContext, CommandHandler
 
+from hello import hello
+
 def prepare():
     """Prepare the environment."""
     
@@ -28,6 +30,7 @@ def main() -> None:
     
     # add the handler for the /start command
     updater.dispatcher.add_handler(CommandHandler('start', start))
+    updater.dispatcher.add_handler(CommandHandler('hello', hello))
     
     # start the bot
     updater.start_polling()
