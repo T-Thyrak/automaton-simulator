@@ -1,8 +1,10 @@
 import os
 from dotenv import load_dotenv
 
-from telegram import Update
-from telegram.ext import Updater, CallbackContext, CommandHandler
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler
+
+from hello import hello, goodbye
 
 def prepare():
     """Prepare the environment."""
@@ -16,6 +18,28 @@ def start(update: Update, context: CallbackContext) -> None:
     # simply send a message to the user
     update.message.reply_text(f'Hello {update.effective_user.first_name}!')
 
+def menu(update: Update, context: CallbackContext) -> None:
+    """Send a message when the command /menu is issued."""
+    
+    update.message.reply_text(text=menu_message(), reply_markup=menu_keyboard())
+    
+def menu_message() -> str:
+    """Prepare the menu message."""
+    
+    return "Choose one of the following options:"
+
+def menu_keyboard() -> InlineKeyboardMarkup:
+    """Prepare the menu keyboard."""
+    
+    keyboard = [
+        [
+            InlineKeyboardButton("Hello", callback_data='hello'),
+            InlineKeyboardButton("Goodbye", callback_data='goodbye'),
+        ],
+    ]
+    
+    return InlineKeyboardMarkup(keyboard)
+
 def main() -> None:
     """Main function."""
     prepare()
@@ -28,6 +52,10 @@ def main() -> None:
     
     # add the handler for the /start command
     updater.dispatcher.add_handler(CommandHandler('start', start))
+    updater.dispatcher.add_handler(CommandHandler('menu', menu))
+    
+    updater.dispatcher.add_handler(CallbackQueryHandler(hello, pattern=r'^hello$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(goodbye, pattern=r'^goodbye$'))
     
     # start the bot
     updater.start_polling()
