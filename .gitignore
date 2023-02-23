@@ -133,3 +133,6 @@ remote.toml
 
 # vscode
 .vscode/
+
+# misc
+misc/

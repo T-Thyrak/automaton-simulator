@@ -2,6 +2,7 @@ anyio==3.6.2
 APScheduler==3.6.3
 cachetools==4.2.2
 certifi==2022.12.7
+dill==0.3.6
 h11==0.14.0
 h2==4.1.0
 hpack==4.0.0
