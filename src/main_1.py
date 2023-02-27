@@ -12,7 +12,8 @@ from modes_1 import \
         state_step, state_mode ,\
         symbol_step, symbol_mode, \
         startstate_step, startstate_mode, \
-        finalstate_step,finalstate_mode
+        finalstate_step,finalstate_mode, \
+        transition_step, transition_mode
 
 
 def prepare():
@@ -87,15 +88,20 @@ def main() -> None:
 
     updater.dispatcher.add_handler(CallbackQueryHandler(symbol_mode, pattern=r'^symbol_mode$'))
     
-    # navigate to symbol
+    # navigate to start state
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_step, pattern=r'^startstate_step$'))
 
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_mode, pattern=r'^startstate_mode$'))
     
-    # navigate to symbol
+    # navigate to final state
     updater.dispatcher.add_handler(CallbackQueryHandler(finalstate_step, pattern=r'^finalstate_step$'))
 
     updater.dispatcher.add_handler(CallbackQueryHandler(finalstate_mode, pattern=r'^finalstate_mode$'))
+
+     # navigate to transition
+    updater.dispatcher.add_handler(CallbackQueryHandler(transition_step, pattern=r'^transition_step$'))
+
+    updater.dispatcher.add_handler(CallbackQueryHandler(transition_mode, pattern=r'^transition_mode$'))
 
     # and finally the message handler, it handles all messages
     # here the `~Filters.command` means that we don't want to handle commands

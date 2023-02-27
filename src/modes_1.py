@@ -10,6 +10,8 @@ from fa import FA, states_list_from_str
 from anything import intersection
 
 
+# State Step
+
 def state_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
 
@@ -47,7 +49,7 @@ def state_mode(update: Update, context: CallbackContext) -> None:
 def state_mode_msg(uid: int) -> str:
     """ Message for State_mode"""
 
-    return f"You're in the 1st step : State mode. \n Click on any button below."
+    return f"You're in the 1st step : State Mode. \n Click on any button below."
 
 def state_mode_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
@@ -66,6 +68,8 @@ def state_mode_button() -> InlineKeyboardMarkup:
     
     return InlineKeyboardMarkup(button)
 
+
+# Symbol Step
 
 def symbol_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -104,7 +108,7 @@ def symbol_mode(update: Update, context: CallbackContext) -> None:
 def symbol_mode_msg(uid: int) -> str:
     """ Message for symbol_mode"""
 
-    return f"You're in the 2nd step : Symbol mode. \n Click on any button below."
+    return f"You're in the 2nd step : Symbol Mode. \n Click on any button below."
 
 def symbol_mode_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
@@ -122,6 +126,9 @@ def symbol_mode_button() -> InlineKeyboardMarkup:
     ]
     
     return InlineKeyboardMarkup(button)
+
+
+# Start State
 
 def startstate_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -160,7 +167,7 @@ def startstate_mode(update: Update, context: CallbackContext) -> None:
 def startstate_mode_msg(uid: int) -> str:
     """ Message for Start State_mode"""
 
-    return f"You're in the 3rd step : Start State mode. \n Click on any button below."
+    return f"You're in the 3rd step : Start State Mode. \n Click on any button below."
 
 def startstate_mode_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
@@ -179,6 +186,8 @@ def startstate_mode_button() -> InlineKeyboardMarkup:
     
     return InlineKeyboardMarkup(button)
 
+
+# Final State
 
 def finalstate_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -231,6 +240,63 @@ def finalstate_mode_button() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton("Back", callback_data='finalstate_step'),
+        ],
+    ]
+    
+    return InlineKeyboardMarkup(button)
+
+# Transition
+def transition_step(update: Update, context: CallbackContext) -> None:
+    """ Handler for transition step"""
+
+    query = update.callback_query
+    query.answer()
+
+    query.edit_message_text(text=transition_step_msg(update.effective_user.id), reply_markup=transition_step_button())
+
+def transition_step_msg(uid: int) -> str:
+    """ Message for transition"""
+
+    return f"You're in last step of designing FA. \n Click on 1st button to customize transition. \n Click on second button to go to next step."
+
+def transition_step_button() -> InlineKeyboardMarkup: 
+    """ Show State button and Next step button"""
+
+    button = [
+        [
+            InlineKeyboardButton("5th Step: Tansition", callback_data='transition_mode'),
+        ],
+        [
+            InlineKeyboardButton("Next Step", callback_data='transition_step'),
+        ],
+    ]
+    
+    return InlineKeyboardMarkup(button)
+
+def transition_mode(update: Update, context: CallbackContext) -> None:
+
+    query = update.callback_query
+    query.answer()
+
+    query.edit_message_text(text=transition_mode_msg(update.effective_user.id), reply_markup=transition_mode_button())
+
+def transition_mode_msg(uid: int) -> str:
+    """ Message for transition_mode"""
+
+    return f"You're in the 5th step : Transition Mode. \n Click on any button below."
+
+def transition_mode_button() -> InlineKeyboardMarkup: 
+    """ Show transition button and Next step button"""
+
+    button = [
+        [
+            InlineKeyboardButton("Add : Transition", callback_data='add_transition_mode'),
+            InlineKeyboardButton("Edit : Transition", callback_data='edit_transition_mode'),
+            InlineKeyboardButton("Delete : Transition", callback_data='delete_transition_mode'),
+            
+        ],
+        [
+            InlineKeyboardButton("Back", callback_data='transition_step'),
         ],
     ]
     
