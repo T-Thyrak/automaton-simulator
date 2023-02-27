@@ -5,12 +5,15 @@ from telegram.ext import CallbackContext
 
 from context import Context
 
+from main_1 import menu
+
 from validate import validate_state_name
 from fa import FA, states_list_from_str
 from anything import intersection
 
+# 1. Design Finite Automaton
 
-# State Step
+# 1.1 State Step
 
 def state_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -23,7 +26,10 @@ def state_step(update: Update, context: CallbackContext) -> None:
 def state_step_msg(uid: int) -> str:
     """ Message for State"""
 
-    return f"You're in 1st step of designing FA. \n Click on 1st button to customize states. \n Click on second button to go to next step."
+    return f" You're in 1st step of designing FA. \
+           \n Click on 1st button to customize states. \
+           \n Click on second button to go to next step.\
+           \n\n Your Current State(s) : `{pformat(list(map(str, Context.context[uid]['fa'].states)))}`."
 
 def state_step_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
@@ -49,16 +55,18 @@ def state_mode(update: Update, context: CallbackContext) -> None:
 def state_mode_msg(uid: int) -> str:
     """ Message for State_mode"""
 
-    return f"You're in the 1st step : State Mode. \n Click on any button below."
+    return f" You're in the 1st step : State Mode. \
+           \n Click on any button below. \
+           \n\n Your Current State(s) : `{pformat(list(map(str, Context.context[uid]['fa'].states)))}`."
 
 def state_mode_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
 
     button = [
         [
-            InlineKeyboardButton("Add : State", callback_data='add_state_mode'),
-            InlineKeyboardButton("Edit : State", callback_data='edit_state_mode'),
-            InlineKeyboardButton("Delete : State", callback_data='delete_state_mode'),
+            InlineKeyboardButton("Add : State(s)", callback_data='add_state_mode'),
+            InlineKeyboardButton("Edit : State(s)", callback_data='edit_state_mode'),
+            InlineKeyboardButton("Delete : State(s)", callback_data='delete_state_mode'),
             
         ],
         [
@@ -68,8 +76,43 @@ def state_mode_button() -> InlineKeyboardMarkup:
     
     return InlineKeyboardMarkup(button)
 
+def add_state_mode(update: Update, context: CallbackContext) -> None:
+    """Add states to states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the states that you want to add, separated by a space.\
+          \n All states must start with the letter 'q' and ends with any amount of numbers. \
+          \n Example: `q0 q1 q2`.\n\nCurrent states: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].states)))}`"
+    
+    Context.context[update.effective_user.id]['mode'] = 'add_state_mode'
+    
+    query.edit_message_text(text=text)
+    
+def add_state_mode_handle(update: Update, context: CallbackContext) -> str:
+    """Handle input from add_state_mode."""
+    
+    msg = update.message.text
+    states = msg.split()
 
-# Symbol Step
+    if not all(map(validate_state_name, states)):
+        Context.context[update.effective_user.id]['mode'] = None
+        return "Invalid state name(s). Please try again."
+    
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_added = fa.add_states_str(states)
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_added:
+        return "State(s) have been added."
+    else:
+        return "No state(s) have been added."
+
+# 1.2 Symbol Step
 
 def symbol_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -82,7 +125,10 @@ def symbol_step(update: Update, context: CallbackContext) -> None:
 def symbol_step_msg(uid: int) -> str:
     """ Message for symbol"""
 
-    return f"You're in 2nd step of designing FA. \n Click on 1st button to customize symbol. \n Click on second button to go to next step."
+    return f" You're in 2nd step of designing FA. \
+          \n Click on 1st button to customize symbol. \
+          \n Click on 2nd button to go to next step. \
+          \n\n Your Current State(s) : `{pformat(list(map(str, Context.context[uid]['fa'].states)))}`."
 
 def symbol_step_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
@@ -128,7 +174,7 @@ def symbol_mode_button() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(button)
 
 
-# Start State
+# 1.3 Start State
 
 def startstate_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -187,7 +233,7 @@ def startstate_mode_button() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(button)
 
 
-# Final State
+# 1.4 Final State
 
 def finalstate_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -245,7 +291,7 @@ def finalstate_mode_button() -> InlineKeyboardMarkup:
     
     return InlineKeyboardMarkup(button)
 
-# Transition
+# 1.5 sTransition
 def transition_step(update: Update, context: CallbackContext) -> None:
     """ Handler for transition step"""
 
@@ -300,4 +346,80 @@ def transition_mode_button() -> InlineKeyboardMarkup:
         ],
     ]
     
+    return InlineKeyboardMarkup(button)
+
+# 2. Verify Finite Automaton
+def verify_step(update: Update, context: CallbackContext) -> None:
+    """ Handler for state step"""
+
+    query = update.callback_query
+    query.answer()
+
+    query.edit_message_text("Under Construction", reply_markup=verify_step_button())
+
+def verify_step_button() -> InlineKeyboardMarkup: 
+    """ Show Verify button and Next step button"""
+
+    button = [
+        [
+            InlineKeyboardButton("Back", callback_data='menu'),
+        ],
+    ]
+    return InlineKeyboardMarkup(button)
+
+# 3. Test Finite Automaton
+def test_step(update: Update, context: CallbackContext) -> None:
+    """ Handler for test step"""
+
+    query = update.callback_query
+    query.answer()
+
+    query.edit_message_text("Under Construction", reply_markup=test_step_button())
+
+def test_step_button() -> InlineKeyboardMarkup: 
+    """ Show test button and Next step button"""
+
+    button = [
+        [
+            InlineKeyboardButton("Back", callback_data='menu'),
+        ],
+    ]
+    return InlineKeyboardMarkup(button)
+
+# 4. Determinization Finite Automaton
+def det_step(update: Update, context: CallbackContext) -> None:
+    """ Handler for state step"""
+
+    query = update.callback_query
+    query.answer()
+
+    query.edit_message_text("Under Construction", reply_markup=det_step_button())
+
+def det_step_button() -> InlineKeyboardMarkup: 
+    """ Show Determinization button and Next step button"""
+
+    button = [
+        [
+            InlineKeyboardButton("Back", callback_data='menu'),
+        ],
+    ]
+    return InlineKeyboardMarkup(button)
+
+# 5. Verify Finite Automaton
+def min_step(update: Update, context: CallbackContext) -> None:
+    """ Handler for Minimization step"""
+
+    query = update.callback_query
+    query.answer()
+
+    query.edit_message_text("Under Construction", reply_markup=min_step_button())
+
+def min_step_button() -> InlineKeyboardMarkup: 
+    """ Show Verify button and Next step button"""
+
+    button = [
+        [
+            InlineKeyboardButton("Back", callback_data='menu'),
+        ],
+    ]
     return InlineKeyboardMarkup(button)
