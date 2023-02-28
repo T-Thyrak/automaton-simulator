@@ -50,6 +50,29 @@ class FA:
             self.states.sort(key=lambda state: state.id)
 
         return has_added
+    
+    #add symbol str
+    def add_symbols_str(self, symbol: list[str]) -> bool:
+        """Add symbols from a list of strings."""
+
+        return self.add_symbols(symbols_list_from_str(symbol))
+
+    def add_symbols(self, symbols: list[Symbol]) -> bool:
+        """Add symbols to the FA."""
+
+        has_added = False
+        for symbol in symbols:
+            print(f"Adding symbol {symbol}")
+            # no duplicates
+            if symbol not in self.alphabet:
+                self.alphabet.append(symbol)
+                has_added = True
+
+        if has_added:
+            # sort ascending
+            self.alphabet.sort(key=lambda symbol: symbol.symbol)
+
+        return has_added
 
     def delete_states_str(self, states: list[str]) -> bool:
         """Delete states from a list of strings."""
