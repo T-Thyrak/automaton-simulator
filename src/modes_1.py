@@ -5,10 +5,8 @@ from telegram.ext import CallbackContext
 
 from context import Context
 
-from main_1 import menu
-
 from validate import validate_state_name
-from fa import FA, states_list_from_str
+from fa import FA, start_state_list_from_str
 from anything import intersection
 
 # 1. Design Finite Automaton
@@ -187,7 +185,8 @@ def startstate_step(update: Update, context: CallbackContext) -> None:
 def startstate_step_msg(uid: int) -> str:
     """ Message for State"""
 
-    return f"You're in 3rd step of designing FA. \n Click on 1st button to customize start state. \n Click on second button to go to next step."
+    return f"You're in 3rd step of designing FA. \n Click on 1st button to customize start state. \n Click on second button to go to next step.\
+        \n\nStart State: {str(Context.context[uid]['fa'].start_state)}"
 
 def startstate_step_button() -> InlineKeyboardMarkup: 
     """ Show Start State button and Next step button"""
@@ -212,15 +211,15 @@ def startstate_mode(update: Update, context: CallbackContext) -> None:
 
 def startstate_mode_msg(uid: int) -> str:
     """ Message for Start State_mode"""
-
-    return f"You're in the 3rd step : Start State Mode. \n Click on any button below."
+    
+    return f"You're in the 3rd step : Start State Mode. \nClick on any button below.\n\nStart State: {str(Context.context[uid]['fa'].start_state)}"
 
 def startstate_mode_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
 
     button = [
         [
-            InlineKeyboardButton("Add : Start State", callback_data='add_startstate_mode'),
+            InlineKeyboardButton("Add : Start State", callback_data='add_start_state_mode'),
             InlineKeyboardButton("Edit : Start State", callback_data='edit_startstate_mode'),
             InlineKeyboardButton("Delete : Start State", callback_data='delete_startstate_mode'),
             
@@ -232,6 +231,37 @@ def startstate_mode_button() -> InlineKeyboardMarkup:
     
     return InlineKeyboardMarkup(button)
 
+def add_start_state_mode(update: Update, context: CallbackContext) -> None:
+    """Add states to states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the start state that you want to add (Only One state)\
+         \n Example: `q0`"
+    
+    Context.context[update.effective_user.id]['mode'] = 'add_start_state_mode'
+    
+    query.edit_message_text(text=text)
+    # query.edit_message_text(text=)
+    
+def add_start_state_mode_handle(update: Update, context: CallbackContext) -> str:
+    """Handle input from add_state_mode."""
+    msg = update.message.text
+    start_state = msg.split()
+    print(start_state)
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_added = fa.add_start_state_str(start_state[0])
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_added:
+        return f" Start State have been added."
+    else:
+        return "No state have been added."
+    
 
 # 1.4 Final State
 
@@ -246,7 +276,8 @@ def finalstate_step(update: Update, context: CallbackContext) -> None:
 def finalstate_step_msg(uid: int) -> str:
     """ Message for final state"""
 
-    return f"You're in 4th step of designing FA. \n Click on 1st button to customize final state. \n Click on second button to go to next step."
+    return f"You're in 4th step of designing FA. \n Click on 1st button to customize final state. \n Click on second button to go to next step.\
+        \n\nFinal State: `{pformat(list(map(str, Context.context[uid]['fa'].final_states)))}`"
 
 def finalstate_step_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
@@ -271,15 +302,15 @@ def finalstate_mode(update: Update, context: CallbackContext) -> None:
 
 def finalstate_mode_msg(uid: int) -> str:
     """ Message for symbol_mode"""
-
-    return f"You're in the 4th step : Final State Mode. \n Click on any button below."
+    return f"You're in the 4th step : Final State Mode. \n Click on any button below.\
+        \n\nFinal States: `{pformat(list(map(str, Context.context[uid]['fa'].final_states)))}`"
 
 def finalstate_mode_button() -> InlineKeyboardMarkup: 
     """ Show State button and Next step button"""
 
     button = [
         [
-            InlineKeyboardButton("Add : Final State", callback_data='add_finalstate_mode'),
+            InlineKeyboardButton("Add : Final State", callback_data='add_final_states_mode'),
             InlineKeyboardButton("Edit : Final State", callback_data='edit_finalstate_mode'),
             InlineKeyboardButton("Delete : Final State", callback_data='delete_finalstate_mode'),
             
@@ -290,6 +321,41 @@ def finalstate_mode_button() -> InlineKeyboardMarkup:
     ]
     
     return InlineKeyboardMarkup(button)
+def add_final_states_mode(update: Update, context: CallbackContext) -> None:
+    """Add states to states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f"Enter the final states that you want to add, separated by a space.\
+          \nAll states must start with the letter 'q' and ends with any amount of numbers. \
+          \nExample: `q0 q1 q2`.\n\nFinal States: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].final_states)))}`"
+    
+    Context.context[update.effective_user.id]['mode'] = 'add_final_states_mode'
+    
+    query.edit_message_text(text=text)
+    
+def add_final_states_mode_handle(update: Update, context: CallbackContext) -> str:
+    """Handle input from add_state_mode."""
+    
+    msg = update.message.text
+    final_states = msg.split()
+
+    if not all(map(validate_state_name, final_states)):
+        Context.context[update.effective_user.id]['mode'] = None
+        return "Invalid state name(s). Please try again."
+    
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_added = fa.add_final_states_str(final_states)
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_added:
+        return f"Final State(s) have been added."
+    else:
+        return "No state(s) have been added."
 
 # 1.5 sTransition
 def transition_step(update: Update, context: CallbackContext) -> None:

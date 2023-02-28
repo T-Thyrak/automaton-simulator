@@ -31,7 +31,6 @@ class FA:
 
     def add_states_str(self, states: list[str]) -> bool:
         """Add states from a list of strings."""
-
         return self.add_states(states_list_from_str(states))
 
     def add_states(self, states: list[State]) -> bool:
@@ -50,14 +49,49 @@ class FA:
             self.states.sort(key=lambda state: state.id)
 
         return has_added
+    
+    def add_start_state_str(self, start_state: str) -> bool:
+        """Add states from a list of strings."""
+        return self.add_start_state(State(int(start_state[1:])))
 
+    def add_start_state(self, start_state: State) -> bool:
+        """Add states to the FA."""
+        print(f"Adding state {start_state}") 
+        self.start_state=start_state
+        return True
+            
+
+    ## Add Final State
+    def add_final_states_str(self, final_states: list[str]) -> bool:
+        """Add states from a list of strings."""
+        return self.add_final_states(final_states_list_from_str(final_states))
+
+    def add_final_states(self, final_states: list[State]) -> bool:
+        """Add states to the FA."""
+
+        has_added = False
+        for final_states in final_states:
+            print(f"Adding final state {final_states}")
+            print (final_states)
+
+            # no duplicates
+            if final_states not in self.final_states:
+                self.final_states.append(final_states)
+                has_added = True
+
+        if has_added:
+            # sort ascending
+            self.final_states.sort(key=lambda final_states: final_states                              .id)
+
+        return has_added
+    
+    
     def delete_states_str(self, states: list[str]) -> bool:
         """Delete states from a list of strings."""
         return self.delete_states(states_list_from_str(states))
 
     def delete_states(self, states: list[State]) -> bool:
         """Delete states from the FA."""
-
         has_deleted = False
         for state in states:
             if state in self.states:
@@ -120,6 +154,11 @@ class FA:
 
 def states_list_from_str(states: list[str]) -> list[State]:
     return [State(int(state[1:])) for state in states]
+
+def start_state_list_from_str(start_state: str) -> State:
+    return (start_state)
+def final_states_list_from_str(final_states: list[str]) -> list[State]:
+    return [State(int(final_states[1:])) for final_states in final_states]
 
 def symbols_list_from_str(symbols: list[str]) -> list[Symbol]:
     return [Symbol(symbol) for symbol in symbols]
