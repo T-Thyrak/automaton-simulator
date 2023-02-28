@@ -12,7 +12,6 @@ from anything import intersection
 # 1. Design Finite Automaton
 
 # 1.1 State Step
-
 def state_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
 

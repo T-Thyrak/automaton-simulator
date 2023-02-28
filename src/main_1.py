@@ -166,3 +166,4 @@ def message_handler(update: Update, context: CallbackContext) -> None:
 if __name__ == '__main__':
     Context.context = load_context()
     main()
+    
