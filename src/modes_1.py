@@ -5,8 +5,6 @@ from telegram.ext import CallbackContext
 
 from context import Context
 
-from main_1 import menu
-
 from validate import validate_state_name
 from fa import FA, states_list_from_str
 from anything import intersection
