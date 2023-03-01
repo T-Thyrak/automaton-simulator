@@ -12,8 +12,8 @@ from context import Context, unload_context, load_context
 from modes_1 import \
         state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode,\
         symbol_step, symbol_mode, \
-        startstate_step, startstate_mode, \
-        finalstate_step,finalstate_mode, \
+        startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
+        finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
         transition_step, transition_mode,\
         verify_step,test_step,det_step,min_step
 
@@ -107,10 +107,14 @@ def main() -> None:
     # navigate to start state
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_step, pattern=r'^startstate_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_mode, pattern=r'^startstate_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(add_start_state_mode, pattern=r'^add_start_state_mode$'))
+
     
     # navigate to final state
     updater.dispatcher.add_handler(CallbackQueryHandler(finalstate_step, pattern=r'^finalstate_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(finalstate_mode, pattern=r'^finalstate_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(add_final_states_mode, pattern=r'^add_final_states_mode$'))
+
 
     # navigate to transition
     updater.dispatcher.add_handler(CallbackQueryHandler(transition_step, pattern=r'^transition_step$'))
@@ -160,6 +164,12 @@ def message_handler(update: Update, context: CallbackContext) -> None:
     if mode == 'add_state_mode':
         update.message.reply_text(text=add_state_mode_handle(update, context))
         update.message.reply_text(text=state_mode_msg(update.effective_user.id), reply_markup=state_mode_button())
+    if mode == 'add_start_state_mode':
+        update.message.reply_text(text=add_start_state_mode_handle(update, context))
+        update.message.reply_text(text=startstate_mode_msg(update.effective_user.id), reply_markup=startstate_mode_button())
+    if mode == 'add_final_states_mode':
+        update.message.reply_text(text=add_final_states_mode_handle(update, context))
+        update.message.reply_text(text=finalstate_mode_msg(update.effective_user.id), reply_markup=finalstate_mode_button())
     else:
         return
 
