@@ -70,7 +70,6 @@ class FA:
         if has_added:
             # sort ascending
             self.alphabet.sort(key=lambda symbol: symbol.symbol)
-
         return has_added
 
     
@@ -84,7 +83,6 @@ class FA:
         self.start_state=start_state
         return True
             
-
     ## Add Final State
     def add_final_states_str(self, final_states: list[str]) -> bool:
         """Add states from a list of strings."""

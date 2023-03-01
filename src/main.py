@@ -14,9 +14,8 @@ from modes_1 import \
          symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg, \
         startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
         finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
-        transition_step, transition_mode,\
+        transition_step, transition_mode, \
         verify_step,test_step,det_step,min_step
-
 
 def prepare():
     """Prepare the environment."""

@@ -15,7 +15,6 @@ def validate_symbol(sym: str) -> bool:
         pattern = r'^.$'
         return re.match(pattern, sym) is not None
 
-
 # from sym import Symbol
 
 # print(repr(Symbol('a')))

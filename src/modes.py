@@ -10,7 +10,6 @@ from fa import FA, start_state_list_from_str
 from anything import intersection
 
 # 1. Design Finite Automaton
-
 # 1.1 State Step
 def state_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""
@@ -185,7 +184,7 @@ def add_symbol_mode(update: Update, context: CallbackContext) -> None:
           \n if you want to add epsilon symbol, please write 'eps', \
           \n Otherwise all symbols will only have one character. \
           \n Example: `a b eps` \
-          \n\nCurrent states: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].states)))}` \
+          \n\n Current states: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].states)))}` \
           \n Current symbols: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].alphabet)))}`"
     
     Context.context[update.effective_user.id]['mode'] = 'add_symbol_mode'
