@@ -5,3 +5,17 @@ def validate_state_name(name: str) -> bool:
     
     pattern = r'^q(\d+)$'
     return re.match(pattern, name) is not None
+
+def validate_symbol(sym: str) -> bool:
+    """Validate that symbol is valid."""
+    
+    if sym == 'eps':
+        return True
+    else:
+        pattern = r'^.$'
+        return re.match(pattern, sym) is not None
+
+
+# from sym import Symbol
+
+# print(repr(Symbol('a')))
