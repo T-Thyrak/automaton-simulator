@@ -11,7 +11,7 @@ from context import Context, unload_context, load_context
 
 from modes_1 import \
         state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode,\
-        symbol_step, symbol_mode, \
+         symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg, \
         startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
         finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
         transition_step, transition_mode,\
@@ -103,7 +103,8 @@ def main() -> None:
     # navigate to symbol
     updater.dispatcher.add_handler(CallbackQueryHandler(symbol_step, pattern=r'^symbol_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(symbol_mode, pattern=r'^symbol_mode$'))
-    
+    updater.dispatcher.add_handler(CallbackQueryHandler(add_symbol_mode, pattern=r'^add_symbol_mode$'))
+
     # navigate to start state
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_step, pattern=r'^startstate_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_mode, pattern=r'^startstate_mode$'))
@@ -164,6 +165,9 @@ def message_handler(update: Update, context: CallbackContext) -> None:
     if mode == 'add_state_mode':
         update.message.reply_text(text=add_state_mode_handle(update, context))
         update.message.reply_text(text=state_mode_msg(update.effective_user.id), reply_markup=state_mode_button())
+    if mode == 'add_symbol_mode':
+        update.message.reply_text(text=add_symbol_mode_handle(update, context))
+        update.message.reply_text(text=symbol_mode_msg(update.effective_user.id), reply_markup=symbol_mode_button())
     if mode == 'add_start_state_mode':
         update.message.reply_text(text=add_start_state_mode_handle(update, context))
         update.message.reply_text(text=startstate_mode_msg(update.effective_user.id), reply_markup=startstate_mode_button())
