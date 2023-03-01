@@ -9,12 +9,12 @@ from fa import FA, fa_debug as debug, test_debug
 
 from context import Context, unload_context, load_context
 
-from modes_1 import \
-        state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode,\
-         symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg, \
+from modes import \
+        state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode, delete_state_mode_handle, delete_state_mode, \
+        symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg, \
         startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
         finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
-        transition_step, transition_mode, \
+        transition_step, transition_mode, transition_mode_msg, transition_mode_button, add_transition_mode_handle, add_transition_mode, delete_transition_mode_handle, delete_transition_mode, \
         verify_step,test_step,det_step,min_step
 
 def prepare():
@@ -77,7 +77,23 @@ def call_menu(update: Update, context: CallbackContext) -> None:
     query.answer()
     
     query.edit_message_text(text=menu_message(), reply_markup=menumode_keyboard())
+    
+# Done handler when called from a callback query
+def done(update: Update, context: CallbackContext) -> None:
+    """Done handler."""
+    
+    if Context.context.get(update.effective_user.id) is None:
+        return
+    
+    if Context.context[update.effective_user.id]['mode'] not in [
+        "add_transition_mode",
+        "delete_transition_mode"
+    ]:
+        return
+    
+    Context.context[update.effective_user.id]['mode'] = None
 
+    update.message.reply_text(text=transition_mode_msg(update.effective_user.id), reply_markup=transition_mode_button())
 
 def main() -> None:
     """Main function."""
@@ -92,12 +108,14 @@ def main() -> None:
     # add the command handlers, they're the messages that starts with `/`
     updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CommandHandler('menu', menu))
+    updater.dispatcher.add_handler(CommandHandler('done', done))
     
 
     # navigate to state 
     updater.dispatcher.add_handler(CallbackQueryHandler(state_step, pattern=r'^state_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(state_mode, pattern=r'^state_mode$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(add_state_mode, pattern=r'^add_state_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(delete_state_mode, pattern=r'^delete_state_mode$'))
 
     # navigate to symbol
     updater.dispatcher.add_handler(CallbackQueryHandler(symbol_step, pattern=r'^symbol_step$'))
@@ -119,6 +137,9 @@ def main() -> None:
     # navigate to transition
     updater.dispatcher.add_handler(CallbackQueryHandler(transition_step, pattern=r'^transition_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(transition_mode, pattern=r'^transition_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(add_transition_mode, pattern=r'^add_transition_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(delete_transition_mode, pattern=r'^delete_transition_mode$'))
+    
 
     # navigate to verify finite automata
     updater.dispatcher.add_handler(CallbackQueryHandler(verify_step, pattern=r'^verify_step$'))
@@ -139,7 +160,6 @@ def main() -> None:
         message_handler
     ))
     
-    
     # start the bot
     updater.start_polling()
     
@@ -149,6 +169,9 @@ def main() -> None:
     updater.idle()
     
     print("Bot has stopped!")
+    print("Unloading the context...")
+    unload_context(Context.context)
+    print("Context unloaded!")
     
     pass
 
@@ -164,6 +187,9 @@ def message_handler(update: Update, context: CallbackContext) -> None:
     if mode == 'add_state_mode':
         update.message.reply_text(text=add_state_mode_handle(update, context))
         update.message.reply_text(text=state_mode_msg(update.effective_user.id), reply_markup=state_mode_button())
+    if mode == 'delete_state_mode':
+        update.message.reply_text(text=delete_state_mode_handle(update, context))
+        update.message.reply_text(text=state_mode_msg(update.effective_user.id), reply_markup=state_mode_button())
     if mode == 'add_symbol_mode':
         update.message.reply_text(text=add_symbol_mode_handle(update, context))
         update.message.reply_text(text=symbol_mode_msg(update.effective_user.id), reply_markup=symbol_mode_button())
@@ -173,8 +199,12 @@ def message_handler(update: Update, context: CallbackContext) -> None:
     if mode == 'add_final_states_mode':
         update.message.reply_text(text=add_final_states_mode_handle(update, context))
         update.message.reply_text(text=finalstate_mode_msg(update.effective_user.id), reply_markup=finalstate_mode_button())
-    else:
-        return
+    if mode == 'add_transition_mode':
+        update.message.reply_text(text=add_transition_mode_handle(update, context))
+    if mode == 'delete_transition_mode':
+        update.message.reply_text(text=delete_transition_mode_handle(update, context))
+    
+    return
 
 if __name__ == '__main__':
     Context.context = load_context()
