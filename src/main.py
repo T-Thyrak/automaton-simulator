@@ -95,6 +95,21 @@ def done(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text(text=transition_mode_msg(update.effective_user.id), reply_markup=transition_mode_button())
 
+def reset(update: Update, context: CallbackContext) -> None:
+    if Context.context.get(update.effective_user.id) is None:
+        Context.context[update.effective_user.id] = {
+            'fa': FA.default(),
+            'id': None,
+            'mode': None,
+            'tmp': {}
+        }
+
+        update.message.reply_text("You have not created any FA yet, so a default one has been created.")
+        return
+
+    Context.context[update.effective_user.id]['fa'] = FA.default()
+    Context.context[update.effective_user.id]['id'] = None
+
 def main() -> None:
     """Main function."""
     prepare()
@@ -109,7 +124,7 @@ def main() -> None:
     updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CommandHandler('menu', menu))
     updater.dispatcher.add_handler(CommandHandler('done', done))
-    
+    updater.dispatcher.add_handler(CommandHandler('reset', reset))
 
     # navigate to state 
     updater.dispatcher.add_handler(CallbackQueryHandler(state_step, pattern=r'^state_step$'))
