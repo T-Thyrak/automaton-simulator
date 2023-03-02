@@ -184,7 +184,7 @@ def add_symbol_mode(update: Update, context: CallbackContext) -> None:
     text = f" Enter the symbols that you want to add, separated by a space.\
           \n if you want to add epsilon symbol, please write 'eps', \
           \n Otherwise all symbols will only have one character. \
-          \n Example: `a b eps` \
+          \n Example: `a b` \
           \n\nCurrent states: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].states)))}` \
           \n Current symbols: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].alphabet)))}`"
     

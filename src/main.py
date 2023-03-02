@@ -125,6 +125,7 @@ def main() -> None:
     updater.dispatcher.add_handler(CommandHandler('menu', menu))
     updater.dispatcher.add_handler(CommandHandler('done', done))
     updater.dispatcher.add_handler(CommandHandler('reset', reset))
+    updater.dispatcher.add_handler(CommandHandler('debug', debug))
 
     # navigate to state 
     updater.dispatcher.add_handler(CallbackQueryHandler(state_step, pattern=r'^state_step$'))
