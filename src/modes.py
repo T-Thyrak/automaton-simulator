@@ -40,6 +40,7 @@ def state_step_button() -> InlineKeyboardMarkup:
             InlineKeyboardButton("1st Step: State", callback_data='state_mode'),
         ],
         [
+            InlineKeyboardButton("Back to Menu", callback_data='menu'),
             InlineKeyboardButton("Next Step", callback_data='symbol_step'),
         ],
     ]
@@ -177,7 +178,8 @@ def symbol_step_button() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton("2nd Step: Symbol", callback_data='symbol_mode'),
         ],
-        [
+        [   
+            InlineKeyboardButton("Back to 1st Step", callback_data='state_step'),
             InlineKeyboardButton("Next Step", callback_data='startstate_step'),
         ],
     ]
@@ -283,6 +285,7 @@ def startstate_step_button() -> InlineKeyboardMarkup:
             InlineKeyboardButton("3rd Step: Start State", callback_data='startstate_mode'),
         ],
         [
+            InlineKeyboardButton("Back to 2nd Step", callback_data='symbol_step'),
             InlineKeyboardButton("Next Step", callback_data='finalstate_step'),
         ],
     ]
@@ -386,6 +389,7 @@ def finalstate_step_button() -> InlineKeyboardMarkup:
             InlineKeyboardButton("4th Step: Final State", callback_data='finalstate_mode'),
         ],
         [
+            InlineKeyboardButton("Back to 3rd Step", callback_data='startstate_step'),
             InlineKeyboardButton("Next Step", callback_data='transition_step'),
         ],
     ]
@@ -491,6 +495,7 @@ def transition_step_button() -> InlineKeyboardMarkup:
             InlineKeyboardButton("5th Step: Transition", callback_data='transition_mode'),
         ],
         [
+             InlineKeyboardButton("Back to 4th Step", callback_data='finalstate_step'),
             InlineKeyboardButton("Done Design FA", callback_data='menu'),
         ],
     ]
@@ -508,7 +513,13 @@ def transition_mode_msg(uid: int) -> str:
     
     fa: FA = Context.context[uid]['fa']
 
-    return f"You're in the 5th step : Transition Mode. \n Click on any button below.\n\nTransitions: `{fa.pretty_transition()}`"
+    return f" You're in the 5th step : Transition Mode. \
+           \n Click on any button below.\
+            \n\n Current State(s) : `{pformat(list(map(str, Context.context[uid]['fa'].states)))}`.\
+           \n Current Symbol : `{pformat(list(map(str, Context.context[uid]['fa'].alphabet)))}`.\
+           \n Current Start State: `{str( Context.context[uid]['fa'].start_state)}`.\
+           \n Current Final State: `{pformat(list(map(str, Context.context[uid]['fa'].final_states)))}`\
+           \n Current Transitions: `{fa.pretty_transition()}`"
 
 def transition_mode_button() -> InlineKeyboardMarkup: 
     """ Show transition button and Next step button"""
@@ -538,7 +549,11 @@ def add_transition_mode(update: Update, context: Context) -> None:
             \n Example: `q0, a => q1, q2`. \
             \n To add epsilon transition, use `eps` as the symbol. \
             \n After you're done, type `/done` to finish adding transitions. \
-            \n\n Current Transitions: `{Context.context[update.effective_user.id]['fa'].pretty_transition()}`"
+            \n\n Current State(s) : `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].states)))}`.\
+            \n Current Symbol : `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].alphabet)))}`.\
+            \n Current Start State: `{str( Context.context[update.effective_user.id]['fa'].start_state)}`.\
+            \n Current Final State: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].final_states)))}`\
+            \n Current Transitions: `{Context.context[update.effective_user.id]['fa'].pretty_transition()}`"
             
     Context.context[update.effective_user.id]['mode'] = 'add_transition_mode'
             
@@ -585,7 +600,11 @@ def delete_transition_mode(update: Update, context: Context) -> None:
             \n To delete a specific output state, use the format `{{index}}: {{states}}+`. \
             \n Example: `1: q1, q2`. \
             \n Example (no output state, meaning all): `1`. \
-            \n\n Current Transitions: `{Context.context[update.effective_user.id]['fa'].pretty_transition(True)}`"
+            \n\n Current State(s) : `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].states)))}`.\
+            \n Current Symbol : `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].alphabet)))}`.\
+            \n Current Start State: `{str( Context.context[update.effective_user.id]['fa'].start_state)}`.\
+            \n Current Final State: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].final_states)))}`\
+            \n Current Transitions: `{Context.context[update.effective_user.id]['fa'].pretty_transition(True)}`"
             
     Context.context[update.effective_user.id]['mode'] = 'delete_transition_mode'
             
