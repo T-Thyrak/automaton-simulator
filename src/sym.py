@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 class Symbol:
     def __init__(self, symbol: str):
         self.symbol = symbol
@@ -16,3 +18,11 @@ class Symbol:
     
     def __hash__(self):
         return hash(self.symbol)
+
+    @staticmethod
+    def epsilon() -> str:
+        return "ε"
+    
+    @staticmethod
+    def epsilon_symbol() -> Symbol:
+        return Symbol(Symbol.epsilon())

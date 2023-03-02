@@ -132,7 +132,11 @@ class FA:
     def add_transition_str(self, from_state: str, with_symbol: str, to_states: list[str]) -> Result[bool, str]:
         """Add a transition from a string."""
         from_state_obj = State(int(from_state[1:]))
-        with_symbol_obj = Symbol(with_symbol)
+
+        if with_symbol == "eps":
+            with_symbol_obj = Symbol.epsilon_symbol()
+        else:
+            with_symbol_obj = Symbol(with_symbol)
         
         to_states_list = states_list_from_str(to_states)
         
@@ -145,7 +149,7 @@ class FA:
         if from_state not in self.states:
             return Result.Err(f"State {from_state} does not exist.")
         
-        if with_symbol not in self.alphabet:
+        if with_symbol not in self.alphabet and with_symbol != Symbol.epsilon_symbol():
             return Result.Err(f"Symbol {with_symbol} does not exist.")
         
         if self.transitions.get((from_state, with_symbol)) is not None:
