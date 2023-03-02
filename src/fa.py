@@ -9,6 +9,9 @@ from telegram.ext import CallbackContext
 from state import State
 from sym import Symbol
 
+from anything import union, difference
+from result import Result
+
 from context import Context
 
 
@@ -31,7 +34,6 @@ class FA:
 
     def add_states_str(self, states: list[str]) -> bool:
         """Add states from a list of strings."""
-
         return self.add_states(states_list_from_str(states))
 
     def add_states(self, states: list[State]) -> bool:
@@ -50,8 +52,8 @@ class FA:
             self.states.sort(key=lambda state: state.id)
 
         return has_added
-    
-    #add symbol str
+   
+     #add symbol str
     def add_symbols_str(self, symbol: list[str]) -> bool:
         """Add symbols from a list of strings."""
 
@@ -71,16 +73,50 @@ class FA:
         if has_added:
             # sort ascending
             self.alphabet.sort(key=lambda symbol: symbol.symbol)
-
         return has_added
 
+    
+    def add_start_state_str(self, start_state: str) -> bool:
+        """Add states from a list of strings."""
+        return self.add_start_state(State(int(start_state[1:])))
+
+    def add_start_state(self, start_state: State) -> bool:
+        """Add states to the FA."""
+        print(f"Adding state {start_state}") 
+        self.start_state=start_state
+        return True
+            
+    ## Add Final State
+    def add_final_states_str(self, final_states: list[str]) -> bool:
+        """Add states from a list of strings."""
+        return self.add_final_states(final_states_list_from_str(final_states))
+
+    def add_final_states(self, final_states: list[State]) -> bool:
+        """Add states to the FA."""
+
+        has_added = False
+        for final_states in final_states:
+            print(f"Adding final state {final_states}")
+            print (final_states)
+
+            # no duplicates
+            if final_states not in self.final_states:
+                self.final_states.append(final_states)
+                has_added = True
+
+        if has_added:
+            # sort ascending
+            self.final_states.sort(key=lambda final_states: final_states.id)
+
+        return has_added
+    
+    
     def delete_states_str(self, states: list[str]) -> bool:
         """Delete states from a list of strings."""
         return self.delete_states(states_list_from_str(states))
 
     def delete_states(self, states: list[State]) -> bool:
         """Delete states from the FA."""
-
         has_deleted = False
         for state in states:
             if state in self.states:
@@ -92,6 +128,95 @@ class FA:
             self.states.sort(key=lambda state: state.id)
 
         return has_deleted
+    
+    def add_transition_str(self, from_state: str, with_symbol: str, to_states: list[str]) -> Result[bool, str]:
+        """Add a transition from a string."""
+        from_state_obj = State(int(from_state[1:]))
+        with_symbol_obj = Symbol(with_symbol)
+        
+        to_states_list = states_list_from_str(to_states)
+        
+        return self.add_transition(from_state_obj, with_symbol_obj, to_states_list)
+    
+    def add_transition(self, from_state: State, with_symbol: Symbol, to_states: list[State]) -> Result[bool, str]:
+        """Add a transition to the FA."""
+        has_added = False
+        
+        if from_state not in self.states:
+            return Result.Err(f"State {from_state} does not exist.")
+        
+        if with_symbol not in self.alphabet:
+            return Result.Err(f"Symbol {with_symbol} does not exist.")
+        
+        if self.transitions.get((from_state, with_symbol)) is not None:
+            # do merge
+            last_transition = self.transitions[(from_state, with_symbol)]
+            self.transitions[(from_state, with_symbol)] = union(last_transition, to_states, key=lambda s1, s2: s1.id == s2.id)
+            has_added = True
+        else:
+            self.transitions[(from_state, with_symbol)] = to_states
+            has_added = True
+        
+        return Result.Ok(has_added)
+    
+    def delete_transition_str(self, from_state: str, with_symbol: str, to_states: list[str]) -> Result[bool, str]:
+        """Delete a transition from a string."""
+        from_state_obj = State(int(from_state[1:]))
+        with_symbol_obj = Symbol(with_symbol)
+        
+        to_states_list = states_list_from_str(to_states)
+        
+        return self.delete_transition(from_state_obj, with_symbol_obj, to_states_list)
+    
+    def delete_transition(self, from_state: State, with_symbol: Symbol, to_states: list[State]) -> Result[bool, str]:
+        """Delete a transition from the FA."""
+        has_deleted = False
+        
+        if from_state not in self.states:
+            return Result.Err(f"State {from_state} does not exist.")
+        
+        if with_symbol not in self.alphabet:
+            return Result.Err(f"Symbol {with_symbol} does not exist.")
+        
+        if self.transitions.get((from_state, with_symbol)) is not None:
+            # do merge
+            last_transition = self.transitions[(from_state, with_symbol)]
+            self.transitions[(from_state, with_symbol)] = difference(last_transition, to_states, key=lambda s1, s2: s1.id == s2.id)
+            has_deleted = True
+        
+        return Result.Ok(has_deleted)
+    
+    def delete_transition_index_str(self, index: str, states: list[str] | None) -> Result[bool, str]:
+        """Delete a transition from a string."""
+        index_obj = int(index)
+        
+        if states is None:
+            states_list = []
+        else:
+            states_list = states_list_from_str(states)
+        
+        return self.delete_transition_index(index_obj, states_list)
+    
+    def delete_transition_index(self, index: int, states: list[State]) -> Result[bool, str]:
+        """Delete a transition from the FA."""
+        has_deleted = False
+        
+        if index < 0 or index >= len(self.transitions):
+            return Result.Err(f"Index {index} is out of bounds.")
+        
+        transition = sorted(self.transitions.items(), key=lambda t: (t[0][0].id, t[0][1].symbol))[index]
+        from_state = transition[0][0]
+        with_symbol = transition[0][1]
+        # to_states = transition[1]
+        
+        if self.transitions.get((from_state, with_symbol)) is not None:
+            # do merge
+            last_transition = self.transitions[(from_state, with_symbol)]
+            diff = difference(last_transition, states, key=lambda s1, s2: s1.id == s2.id)
+            self.transitions[(from_state, with_symbol)] = diff
+            has_deleted = True
+        
+        return Result.Ok(has_deleted)
 
     def json_serialize(self, indent: int = 4) -> str:
         """Serialize the FA to JSON."""
@@ -136,6 +261,25 @@ class FA:
             fa.transitions[(from_state, with_symbol)] = to_state
         
         return fa
+    
+    def pretty_transition(self, with_counter: bool = False) -> str:
+        sorted_transitions = sorted(self.transitions.items(), key=lambda transition: (transition[0][0].id, transition[0][1].symbol))
+        
+        if len(sorted_transitions) == 0:
+            return "[]"
+
+        counter = 1
+        
+        sb = "[\n"
+        for transition in sorted_transitions:
+            if not with_counter:
+                sb += f"    {str(transition[0][0])} --- {str(transition[0][1])} --> {str(list(map(str, transition[1])))}\n"
+            else:
+                sb += f"    {counter}. {str(transition[0][0])} --- {str(transition[0][1])} --> {str(list(map(str, transition[1])))}\n"
+                counter += 1
+        sb += "]"
+        
+        return sb
                 
     def __repr__(self):
         return f"FA(states={self.states}, alphabet={self.alphabet}, transitions={self.transitions}, start_state={self.start_state}, final_states={self.final_states})"
@@ -143,6 +287,11 @@ class FA:
 
 def states_list_from_str(states: list[str]) -> list[State]:
     return [State(int(state[1:])) for state in states]
+
+def start_state_list_from_str(start_state: str) -> State:
+    return (start_state)
+def final_states_list_from_str(final_states: list[str]) -> list[State]:
+    return [State(int(final_states[1:])) for final_states in final_states]
 
 def symbols_list_from_str(symbols: list[str]) -> list[Symbol]:
     return [Symbol(symbol) for symbol in symbols]
