@@ -663,24 +663,44 @@ def verify_step_button() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(button)
 
-# 3. Test Finite Automaton
-def test_step(update: Update, context: CallbackContext) -> None:
+# 3. Test Finite Automaton => Process String
+def test_string_step(update: Update, context: CallbackContext) -> None:
     """ Handler for test step"""
 
     query = update.callback_query
     query.answer()
 
-    query.edit_message_text("Under Construction", reply_markup=test_step_button())
+    query.edit_message_text(text=test_string_msg(update.effective_user.id), reply_markup=test_string_step_button())
 
-def test_step_button() -> InlineKeyboardMarkup: 
+    Context.context[update.effective_user.id]['mode'] = 'test_string_step'
+    query.edit_message_text(text=test_string_msg)
+
+def test_string_msg(uid: int) -> str:
+
+    return f"Input String you want run automation below :\
+              \n\n Current State(s) : `{pformat(list(map(str, Context.context[uid]['fa'].states)))}`.\
+            \n Current Symbol : `{pformat(list(map(str, Context.context[uid]['fa'].alphabet)))}`.\
+            \n Current Start State: `{str( Context.context[uid]['fa'].start_state)}`.\
+            \n Current Final State: `{pformat(list(map(str, Context.context[uid]['fa'].final_states)))}`\
+            \n Current Transitions: `{Context.context[uid]['fa'].pretty_transition(True)}`"
+
+def test_string_handle(update: Update, context:CallbackContext) -> str:
+    """Handle string from user"""
+
+    test_string_step = update.message.text
+    print(test_string_step)
+
+
+def test_string_step_button() -> InlineKeyboardMarkup: 
     """ Show test button and Next step button"""
 
     button = [
         [
-            InlineKeyboardButton("Back", callback_data='menu'),
+            InlineKeyboardButton("Back to Menu", callback_data='menu'),
         ],
     ]
     return InlineKeyboardMarkup(button)
+
 
 # 4. Determinization Finite Automaton
 def det_step(update: Update, context: CallbackContext) -> None:

@@ -17,7 +17,7 @@ from modes import \
         startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
         finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
         transition_step, transition_mode, transition_mode_msg, transition_mode_button, add_transition_mode_handle, add_transition_mode, delete_transition_mode_handle, delete_transition_mode, \
-        verify_step,test_step,det_step,min_step
+        verify_step,test_string_step,det_step,min_step
 
 def prepare():
     """Prepare the environment."""
@@ -116,7 +116,7 @@ def main() -> None:
     updater.dispatcher.add_handler(CallbackQueryHandler(verify_step, pattern=r'^verify_step$'))
 
     # navigate to test finite automata
-    updater.dispatcher.add_handler(CallbackQueryHandler(test_step, pattern=r'^test_step$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(test_string_step, pattern=r'^test_string_step$'))
 
     # navigate to determinization
     updater.dispatcher.add_handler(CallbackQueryHandler(det_step, pattern=r'^det_step$'))
@@ -174,7 +174,8 @@ def message_handler(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(text=add_transition_mode_handle(update, context))
     if mode == 'delete_transition_mode':
         update.message.reply_text(text=delete_transition_mode_handle(update, context))
-    
+    if mode == 'test_string_step':
+        update.message.reply_text(text=test_string_step(update, context))
     return
 
 if __name__ == '__main__':
