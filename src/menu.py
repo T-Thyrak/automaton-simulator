@@ -42,6 +42,9 @@ def menumode_keyboard() -> InlineKeyboardMarkup:
           
         ],
         [
+            InlineKeyboardButton("Save/Load FA", callback_data='save_step'),
+        ],
+        [
             InlineKeyboardButton("Done", callback_data='done'),
         ],
     ]
@@ -56,4 +59,3 @@ def call_menu(update: Update, context: CallbackContext) -> None:
     query.answer()
     
     query.edit_message_text(text=menu_message(), reply_markup=menumode_keyboard())
-    

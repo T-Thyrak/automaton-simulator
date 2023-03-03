@@ -222,8 +222,11 @@ class FA:
         
         return Result.Ok(has_deleted)
 
-    def json_serialize(self, indent: int = 4) -> str:
-        """Serialize the FA to JSON."""
+    def json_serialize(self, indent: int | None = 4) -> str:
+        """Serialize the FA to JSON.
+        
+        Args:
+            indent (int, optional): Indentation. Defaults to 4. (None for no indentation)"""
 
         d = {
             "states": [str(state) for state in self.states],
@@ -248,7 +251,6 @@ class FA:
             return None
         
         d = json.loads(json_str)
-        print(d)
         
         fa = FA.default()
         fa.states = states_list_from_str(d['states'])
@@ -344,24 +346,7 @@ def test_debug(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f"Debug information:\n\n{fa.json_serialize()}")
 
 def test_from() -> None:
-    fa_string = """{
-        "states": ["q0", "q1", "q2", "q3"],
-        "alphabet": ["a", "b"],
-        "starting_state": "q0",
-        "final_states": ["q3"],
-        "transition_function": [
-            {
-                "from_state": "q0",
-                "with_symbol": "a",
-                "to_state": ["q1", "q2"]
-            },
-            {
-                "from_state": "q1",
-                "with_symbol": "\u03B5",
-                "to_state": ["q3"]
-            }
-        ]
-        }"""
+    fa_string = """{"states": ["q0", "q1", "q2"], "alphabet": ["a", "b"], "starting_state": "q0", "final_states": ["q2"], "transition_function": [{"from_state": "q0", "with_symbol": "a", "to_state": ["q1", "q2"]}, {"from_state": "q0", "with_symbol": "b", "to_state": ["q1"]}, {"from_state": "q1", "with_symbol": "a", "to_state": ["q2"]}, {"from_state": "q1", "with_symbol": "\u03b5", "to_state": ["q2"]}]}"""
         
     fa = FA.json_deserialize(fa_string)
     

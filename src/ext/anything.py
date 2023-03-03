@@ -38,3 +38,11 @@ def difference(lst1: list[T], lst2: list[T], key: Callable[[T, T], bool] = None)
         return new_lst
     else:
         return [i for i in lst1 if i not in lst2]
+    
+def dequote(s: str) -> str:
+    if s[0] == '"' and s[-1] == '"':
+        return s[1:-1]
+    elif s[0] == '\'' and s[-1] == '\'':
+        return s[1:-1]
+    else:
+        return s

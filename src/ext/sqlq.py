@@ -4,6 +4,8 @@ import os
 import mysql.connector
 from dotenv import load_dotenv
 
+from typing import Any
+
 load_dotenv()
 
 def create_connection() -> mysql.connector.MySQLConnection:
@@ -35,7 +37,7 @@ def rollback(db_conn: mysql.connector.MySQLConnection) -> None:
     db_conn.rollback()
 
 
-def execute_query(query: str, db_conn: mysql.connector.MySQLConnection, values: tuple[str | int | float] | list[tuple[str | int | float]] | None = None) -> None | any:
+def execute_query(query: str, db_conn: mysql.connector.MySQLConnection, values: tuple[str | int | float] | list[tuple[str | int | float]] | None = None) -> None | Any:
     """Execute a query on the database.
     
     WARNING: This function does not make any attempt to sanitize the query. Please make sure that the query is safe before
@@ -48,10 +50,11 @@ def execute_query(query: str, db_conn: mysql.connector.MySQLConnection, values: 
     cursor = db_conn.cursor()
     cursor.execute(query, values)
     rt_result = cursor.fetchall()
+    if query.startswith("INSERT"):
+        rt_result = cursor.lastrowid
     cursor.close()
     return rt_result
     
 def destroy_connection(db_conn: mysql.connector.MySQLConnection) -> None:
     """Destroy the connection to the database."""
     db_conn.close()
-
