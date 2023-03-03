@@ -1,3 +1,5 @@
+from ext.console import CONSOLE
+
 import os
 from dotenv import load_dotenv
 
@@ -5,7 +7,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 
 from fa import FA, fa_debug as debug, test_debug
-
 
 from context import Context, unload_context, load_context
 

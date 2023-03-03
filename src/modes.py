@@ -11,7 +11,7 @@ from sym import Symbol
 
 from validate import validate_state_name, validate_symbol
 from fa import FA, start_state_list_from_str, states_list_from_str
-from anything import intersection
+from ext.anything import intersection
 from menu import menu
 
 # 1. Design Finite Automaton
