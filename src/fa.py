@@ -9,7 +9,7 @@ from telegram.ext import CallbackContext
 from state import State
 from sym import Symbol
 
-from anything import union, difference
+from ext.anything import union, difference
 from result import Result
 
 from context import Context
@@ -244,19 +244,20 @@ class FA:
             return None
         
         d = json.loads(json_str)
+        print(d)
         
         fa = FA.default()
-        fa.states = states_list_from_str(list(map(lambda s: s[1:], d['states'])))
+        fa.states = states_list_from_str(d['states'])
         fa.alphabet = symbols_list_from_str(d['alphabet'])
         fa.starting_state = State(int(d['starting_state'][1:]))
-        fa.final_states = states_list_from_str(list(map(lambda s: s[1:], d['final_states'])))
+        fa.final_states = states_list_from_str(d['final_states'])
         
         fa.transitions = {}
         
         for transition in d['transition_function']:
             from_state = State(int(transition['from_state'][1:]))
             with_symbol = Symbol(transition['with_symbol'])
-            to_state = states_list_from_str(list(map(lambda s: s[1:], transition['to_state'])))
+            to_state = states_list_from_str(transition['to_state'])
             
             fa.transitions[(from_state, with_symbol)] = to_state
         
@@ -337,3 +338,30 @@ def test_debug(update: Update, context: CallbackContext) -> None:
     )
 
     update.message.reply_text(f"Debug information:\n\n{fa.json_serialize()}")
+
+def test_from() -> None:
+    fa_string = """{
+        "states": ["q0", "q1", "q2", "q3"],
+        "alphabet": ["a", "b"],
+        "starting_state": "q0",
+        "final_states": ["q3"],
+        "transition_function": [
+            {
+                "from_state": "q0",
+                "with_symbol": "a",
+                "to_state": ["q1", "q2"]
+            },
+            {
+                "from_state": "q1",
+                "with_symbol": "\u03B5",
+                "to_state": ["q3"]
+            }
+        ]
+        }"""
+        
+    fa = FA.json_deserialize(fa_string)
+    
+    print(fa)
+    
+if __name__ == "__main__":
+    test_from()
