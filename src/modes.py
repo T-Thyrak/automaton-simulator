@@ -14,6 +14,8 @@ from fa import FA, start_state_list_from_str, states_list_from_str
 from ext.anything import intersection
 from menu import menu
 from saveload import go_save, go_load, show_saved_fa, is_valid_id
+from verify_fa import verify_fa
+from result import Result
 
 # 1. Design Finite Automaton
 # 1.1 State Step
@@ -652,14 +654,25 @@ def verify_step(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     query.answer()
 
-    query.edit_message_text("Under Construction", reply_markup=verify_step_button())
+    header = "You're in Verify FA.\n\n"
+    if Context.context[update.effective_user.id]['fa'].transitions == {}:
+        text =  "You have not created an FA yet, please go back to menu."
+    else:
+        fa: FA = Context.context[update.effective_user.id]['fa']
+
+        if verify_fa(fa):
+            text = header + "FA that you have been designed is NFA."
+        else:
+            text = header + "FA that you have been designed is DFA."
+
+    query.edit_message_text(text=text, reply_markup=verify_step_button())
 
 def verify_step_button() -> InlineKeyboardMarkup: 
     """ Show Verify button and Next step button"""
 
     button = [
         [
-            InlineKeyboardButton("Back", callback_data='menu'),
+            InlineKeyboardButton("Back to Menu", callback_data='menu'),
         ],
     ]
     return InlineKeyboardMarkup(button)
