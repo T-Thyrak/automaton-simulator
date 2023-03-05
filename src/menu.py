@@ -43,10 +43,7 @@ def menumode_keyboard() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton("Save/Load FA", callback_data='save_step'),
-        ],
-        [
-            InlineKeyboardButton("Done", callback_data='done'),
-        ],
+        ]
     ]
     
     return InlineKeyboardMarkup(keyboard)

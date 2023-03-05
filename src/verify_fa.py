@@ -11,15 +11,26 @@ from result import *
 # t[1] means transitions->to_state
 # t[0][1] means transitions->from_state->with_symbol
 
-def verify_fa (fa : FA) -> bool:
+def verify_fa (fa : FA) -> Result[bool, str]:
+    """Verify whether FA is a NFA or DFA.
+    
+    Args:
+        fa (FA): The FA to test
+    
+    Returns:
+        Result[bool, str]: The result of the verification. Ok(true) if NFA, Ok(false) if DFA. Err if undecidable.
+    """
+    
+    if len(fa.transitions) == 0:
+        return Result.Err("There is no transitions to check.")
+    
     for t in fa.transitions.items():
         # check if symbol contain epsilon
         if t[0][1] == Symbol.epsilon_symbol():
-            print('error epsilon')
             return Result.Ok(True)
         # check if to_state have many states
         if len(t[1]) > 1:
-            print('error many next states')
             return Result.Ok(True)
-    return Result.ok(False)
+
+    return Result.Ok(False)
 

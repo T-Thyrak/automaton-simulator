@@ -655,12 +655,14 @@ def verify_step(update: Update, context: CallbackContext) -> None:
     query.answer()
 
     header = "You're in Verify FA.\n\n"
-    if Context.context[update.effective_user.id]['fa'].transitions == {}:
-        text =  "You have not created an FA yet, please go back to menu."
-    else:
-        fa: FA = Context.context[update.effective_user.id]['fa']
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    result = verify_fa(fa)
 
-        if verify_fa(fa):
+    if result.is_err():
+        text = f"Cannot decide: Error: {result.unwrap_err()}"
+    else:
+        res = result.unwrap()
+        if res:
             text = header + "FA that you have been designed is NFA."
         else:
             text = header + "FA that you have been designed is DFA."
