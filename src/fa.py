@@ -2,6 +2,7 @@ from __future__ import annotations
 #! ^^^^^ this is a future import, it moves the annotations evaluation to *after* the class definition
 
 import json
+import copy
 
 from telegram import Update
 from telegram.ext import CallbackContext
@@ -89,7 +90,7 @@ class FA:
     ## Add Final State
     def add_final_states_str(self, final_states: list[str]) -> bool:
         """Add states from a list of strings."""
-        return self.add_final_states(final_states_list_from_str(final_states))
+        return self.add_final_states(states_list_from_str(final_states))
 
     def add_final_states(self, final_states: list[State]) -> bool:
         """Add states to the FA."""
@@ -221,6 +222,8 @@ class FA:
             has_deleted = True
         
         return Result.Ok(has_deleted)
+    
+    # *** UTILITIES ***
 
     def json_serialize(self, indent: int | None = 4) -> str:
         """Serialize the FA to JSON.
@@ -287,22 +290,52 @@ class FA:
         sb += "]"
         
         return sb
-                
+    
+    def copy(self) -> FA:
+        """Performs deep copy of the FA."""
+        states = copy.deepcopy(self.states)
+        alphabet = copy.deepcopy(self.alphabet)
+        transitions = copy.deepcopy(self.transitions)
+        start_state = copy.deepcopy(self.start_state)
+        final_states = copy.deepcopy(self.final_states)
+        
+        return FA(states, alphabet, transitions, start_state, final_states)
+    
+    def verify_fa(self) -> Result[bool, str]:
+        """Verify whether FA is a NFA or DFA.
+        
+        Args:
+            fa (FA): The FA to test
+        
+        Returns:
+            Result[bool, str]: The result of the verification. Ok(true) if NFA, Ok(false) if DFA. Err if undecidable.
+        """
+        
+        if len(self.transitions) == 0:
+            return Result.Err("There is no transitions to check.")
+        
+        for t in self.transitions.items():
+            # check if symbol contain epsilon
+            if t[0][1] == Symbol.epsilon_symbol():
+                return Result.Ok(True)
+            # check if to_state have many states
+            if len(t[1]) > 1:
+                return Result.Ok(True)
+
+        return Result.Ok(False)
+
     def __repr__(self):
+        """Returns the string representation of the FA."""
         return f"FA(states={self.states}, alphabet={self.alphabet}, transitions={self.transitions}, start_state={self.start_state}, final_states={self.final_states})"
 
 
 def states_list_from_str(states: list[str]) -> list[State]:
+    """Creates a list of states from a list of strings."""
     return [State(int(state[1:])) for state in states]
 
-def start_state_list_from_str(start_state: str) -> State:
-    return (start_state)
-def final_states_list_from_str(final_states: list[str]) -> list[State]:
-    return [State(int(final_states[1:])) for final_states in final_states]
-
 def symbols_list_from_str(symbols: list[str]) -> list[Symbol]:
+    """Creates a list of symbols from a list of strings."""
     return [Symbol(symbol) for symbol in symbols]
-
 
 def fa_debug(update: Update, context: CallbackContext) -> None:
     """Prints the FA in debug mode."""

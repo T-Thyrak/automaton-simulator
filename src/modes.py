@@ -14,7 +14,6 @@ from fa import FA, start_state_list_from_str, states_list_from_str
 from ext.anything import intersection
 from menu import menu
 from saveload import go_save, go_load, show_saved_fa, is_valid_id
-from verify_fa import verify_fa
 from result import Result
 
 # 1. Design Finite Automaton
@@ -656,7 +655,7 @@ def verify_step(update: Update, context: CallbackContext) -> None:
 
     header = "You're in Verify FA.\n\n"
     fa: FA = Context.context[update.effective_user.id]['fa']
-    result = verify_fa(fa)
+    result = fa.verify_fa()
 
     if result.is_err():
         text = f"Cannot decide: Error: {result.unwrap_err()}"
