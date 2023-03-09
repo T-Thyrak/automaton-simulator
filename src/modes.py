@@ -10,7 +10,7 @@ from state import State
 from sym import Symbol
 
 from validate import validate_state_name, validate_symbol
-from fa import FA, start_state_list_from_str, states_list_from_str
+from fa import FA, states_list_from_str
 from ext.anything import intersection
 from menu import menu
 from saveload import go_save, go_load, show_saved_fa, is_valid_id
@@ -722,8 +722,21 @@ def min_step(update: Update, context: CallbackContext) -> None:
 
     query = update.callback_query
     query.answer()
+    
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    result = fa.minimize()
+    if result.is_err():
+        query.edit_message_text(f"Minimizing Error: {result.unwrap_err()}", reply_markup=min_step_button())
+    
+    fa = result.unwrap()
+    Context.context[update.effective_user.id]['fa'] = fa
 
-    query.edit_message_text("Under Construction", reply_markup=min_step_button())
+    query.edit_message_text(f"Minimizing FA successful. \
+            \n\nCurrent States: `{pformat(list(map(str, fa.states)))}`\
+            \nCurrent Symbol: `{pformat(list(map(str, fa.alphabet)))}`\
+            \nCurrent Start State: `{str(fa.start_state)}`\
+            \nCurrent Final State: `{pformat(list(map(str, fa.final_states)))}`\
+            \nCurrent Transitions: `{fa.pretty_transition()}`", reply_markup=min_step_button())
 
 def min_step_button() -> InlineKeyboardMarkup: 
     """ Show Verify button and Next step button"""
@@ -766,7 +779,7 @@ def save_step_msg(uid: int) -> str:
             \n Current Symbol : `{pformat(list(map(str, fa.alphabet)))}`.\
             \n Current Start State: `{str(fa.start_state)}`.\
             \n Current Final State: `{pformat(list(map(str, fa.final_states)))}`\
-            \n Current Transitions: `{fa.pretty_transition(True)}`"
+            \n Current Transitions: `{fa.pretty_transition()}`"
             
 def save_step_button() -> InlineKeyboardMarkup:
     """Show Saving or Loading button"""
