@@ -14,7 +14,7 @@ from ext.anything import union, difference
 from result import Result
 
 from context import Context
-
+from ext.anything import table_drop, position_of, choose, prune_none
 
 class FA:
     def __init__(self, states: list[State] = None, alphabet: list[Symbol] = None, transitions: dict[tuple[State, Symbol], list[State]] = None, start_state: State = None, final_states: list[State] = None):
@@ -250,7 +250,8 @@ class FA:
         
         try:
             json.loads(json_str)
-        except json.decoder.JSONDecodeError:
+        except json.decoder.JSONDecodeError as e:
+            print(f"JSONPARSINGERROR:\n{e.msg = }\n{e.doc = }\n{e.pos = }\n{e.lineno = }\n{e.colno = }")
             return None
         
         d = json.loads(json_str)
@@ -258,7 +259,7 @@ class FA:
         fa = FA.default()
         fa.states = states_list_from_str(d['states'])
         fa.alphabet = symbols_list_from_str(d['alphabet'])
-        fa.starting_state = State(int(d['starting_state'][1:]))
+        fa.start_state = State(int(d['starting_state'][1:]))
         fa.final_states = states_list_from_str(d['final_states'])
         
         fa.transitions = {}
@@ -323,7 +324,147 @@ class FA:
                 return Result.Ok(True)
 
         return Result.Ok(False)
+    
+    def minimize(self) -> Result[FA, str]:
+        """Minimize a *DFA* with the Table-Filling Algorithm."""
+        
+        result = self.verify_fa()
+        if result.is_err():
+            return Result.Err(result.unwrap_err())
+        
+        if result.unwrap() == True:
+            return Result.Err("Cannot minimize a NFA.")
+        
+        # * Step 1. Remove unreachable states
+        reachable_states = set()
+        reachable_states.add(self.start_state)
+        for state in self.states:
+            for symbol in self.alphabet:
+                # if there is a transition from state with any symbol, it is reachable
+                if self.transitions.get((state, symbol)) is not None:
+                    reachable_states.add(self.transitions[(state, symbol)][0])
+                    
+        print(f"{reachable_states = }")
 
+        # Convert to sorted list, for consistency
+        reachable_states = sorted(list(reachable_states), key=lambda state: state.id)
+        
+        # * Step 2. Mark final and non-final states pair
+        mark_table: dict[tuple[int, int], bool] = {}
+        for state1 in reachable_states:
+            for state2 in reachable_states:
+                is_final1 = state1 in self.final_states
+                is_final2 = state2 in self.final_states
+
+                if (is_final1 and not is_final2) or (is_final2 and not is_final1):
+                    mark_table[(state1.id, state2.id)] = True
+                else:
+                    mark_table[(state1.id, state2.id)] = False
+                    
+        # * Step 3. Mark pairs of states
+        while True:
+            #! ^i hate non-locals more than while True
+            
+            old_mark_table = copy.deepcopy(mark_table)
+            
+            for state1 in reachable_states:
+                for state2 in reachable_states:
+                    for symbol in self.alphabet:
+                        # nice day to have O(n^4) algorithm
+                        
+                        out_states1 = self.transitions.get((state1, symbol))
+                        out_states2 = self.transitions.get((state2, symbol))
+                        
+                        # if the output states of both the states are marked, then mark the pair of original states
+                        if out_states1 is not None and out_states2 is not None:
+                            mark = mark_table.get((out_states1[0].id, out_states2[0].id))
+                            if mark is not None and mark == True:
+                                mark_table[(state1.id, state2.id)] = True
+            
+            if old_mark_table == mark_table:
+                break
+        
+        # drop half of the table, as it is symmetric
+        mark_table = table_drop(mark_table, key=lambda x, y: x >= y)
+        
+        # * Step 4. Create equivalence classes
+        equivalence_classes: list[set[State]] = []
+        available_states: list[State] = copy.deepcopy(reachable_states)
+        
+        while len(available_states) != 0:
+            state = available_states[0]
+            equivalence_class = set([state])
+            
+            for state2 in available_states:
+                min_key = min(state.id, state2.id)
+                max_key = max(state.id, state2.id)
+                
+                mark = mark_table.get((min_key, max_key))
+                if mark is not None and not mark:
+                    equivalence_class.add(state2)
+
+            equivalence_classes.append(equivalence_class)
+            available_states = list(filter(lambda x: x not in equivalence_class, available_states))
+            
+        # * Step 5. Create new states
+        # the new states are the equivalence classes
+        new_states: list[State] = list(map(lambda x: State(x), range(len(equivalence_classes))))
+        
+        # the initial state is the equivalence class of the initial state
+        # ? I do wonder why that is unique.
+        
+        new_initial_state: State = position_of(equivalence_classes, key=lambda x: self.start_state in x)
+        if new_initial_state is None:
+            return Result.Err("Absurd error: Initial state not found in equivalence classes.")
+        
+        # the final states are the equivalence classes that contain a final state
+        # !and yes, I am a big fan of functional programming
+        # !but Python makes everything a function instead of composing them
+        
+        # Explanation: This thing loops over each equivalence classes
+        # then loops over each state in the equivalence class to check if it is a final state, and retains the ones that are
+        # then we check that if there is even at least one left over per equivalence class
+        # then the equivalence class is a final state, and retained.
+        
+        new_final_states_classes: list[set[State]] = list(filter(lambda x: len(list(filter(lambda y: y in self.final_states, x))) > 0, equivalence_classes))
+        # print(f"\033[38;2;255;0;0m{equivalence_classes = }\033[0m")
+        # print(f"\033[38;2;255;0;0m{new_final_states_classes = }\033[0m")
+        new_final_states = list(map(lambda x: State(position_of(equivalence_classes, key=lambda y: x == y)), new_final_states_classes))
+        # print(f"\033[38;2;255;0;0m{new_final_states = }\033[0m")
+        new_transitions: dict[tuple[State, Symbol], list[State]] = {}
+        
+        # our method of setting the transition is indexing as we go
+        # very buggy, but it works in Rust, so it should work here too
+        for i, equivalence_class in enumerate(equivalence_classes):
+            for symbol in self.alphabet:
+                # pick a random state in the equivalence class
+                state = choose(equivalence_class)
+                
+                # find delta[state, symbol]
+                out_states = self.transitions.get((state, symbol))
+                
+                # set the new transition if None
+                if out_states is None:
+                    new_transitions[(State(i), symbol)] = None
+                    continue
+                    
+                out_state = out_states[0]
+                
+                # find the equivalence class index of the output state
+                out_equivalence_class_index = position_of(equivalence_classes, key=lambda x: out_state in x)
+                
+                # actually set the new transition
+                new_transitions[(State(i), symbol)] = [State(out_equivalence_class_index)]
+
+        new_transitions = prune_none(new_transitions)
+        return Result.Ok(FA(
+            new_states,
+            copy.deepcopy(self.alphabet),
+            new_transitions,
+            new_initial_state,
+            new_final_states
+        ))
+        
     def __repr__(self):
         """Returns the string representation of the FA."""
         return f"FA(states={self.states}, alphabet={self.alphabet}, transitions={self.transitions}, start_state={self.start_state}, final_states={self.final_states})"
@@ -377,13 +518,3 @@ def test_debug(update: Update, context: CallbackContext) -> None:
     )
 
     update.message.reply_text(f"Debug information:\n\n{fa.json_serialize()}")
-
-def test_from() -> None:
-    fa_string = """{"states": ["q0", "q1", "q2"], "alphabet": ["a", "b"], "starting_state": "q0", "final_states": ["q2"], "transition_function": [{"from_state": "q0", "with_symbol": "a", "to_state": ["q1", "q2"]}, {"from_state": "q0", "with_symbol": "b", "to_state": ["q1"]}, {"from_state": "q1", "with_symbol": "a", "to_state": ["q2"]}, {"from_state": "q1", "with_symbol": "\u03b5", "to_state": ["q2"]}]}"""
-        
-    fa = FA.json_deserialize(fa_string)
-    
-    print(fa)
-    
-if __name__ == "__main__":
-    test_from()
