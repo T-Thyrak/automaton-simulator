@@ -6,19 +6,37 @@ from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 
-from fa import FA, fa_debug as debug, test_debug
+from fa import FA, fa_debug as debug
 
 from context import Context, unload_context, load_context
 
-from menu import menu,menu_message,menumode_keyboard, call_menu
+from menu import menu, call_menu
 
-from modes import \
-        state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode, delete_state_mode_handle, delete_state_mode, \
-        symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg, \
-        startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
-        finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
-        transition_step, transition_mode, transition_mode_msg, transition_mode_button, add_transition_mode_handle, add_transition_mode, delete_transition_mode_handle, delete_transition_mode, \
-        verify_step,test_step,det_step,min_step, save_step, save, load, load_mode_handle, just_back
+# from modes import \
+#         state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode, delete_state_mode_handle, delete_state_mode, \
+#         symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg, \
+#         startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
+#         finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
+#         transition_step, transition_mode, transition_mode_msg, transition_mode_button, add_transition_mode_handle, add_transition_mode, delete_transition_mode_handle, delete_transition_mode, \
+#         verify_step,test_step,det_step,min_step, save_step, save, load, load_mode_handle, just_back
+
+from modes.design_fa.state_step import state_step, state_mode, add_state_mode, \
+    add_state_mode_handle, delete_state_mode, delete_state_mode_handle, state_mode_msg, state_mode_button
+from modes.design_fa.symbol_step import symbol_step, symbol_mode, add_symbol_mode, \
+    add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg
+from modes.design_fa.start_state_step import startstate_step, startstate_mode, add_start_state_mode, \
+    add_start_state_mode_handle, startstate_mode_msg, startstate_mode_button
+from modes.design_fa.final_states_step import finalstate_step, finalstate_mode, add_final_states_mode, \
+    add_final_states_mode_handle, finalstate_mode_msg, finalstate_mode_button
+from modes.design_fa.transition_step import transition_step, transition_mode, add_transition_mode, \
+    add_transition_mode_handle, delete_transition_mode, delete_transition_mode_handle, \
+    transition_mode_msg, transition_mode_button
+from modes.verify_fa import verify_step
+from modes.test_fa import test_step
+from modes.det_fa import det_step
+from modes.min_fa import min_step
+from modes.save_load_fa import save_step, save, save_new, load, load_mode_handle, just_back
+
 
 def prepare():
     """Prepare the environment."""
@@ -128,6 +146,7 @@ def main() -> None:
     # navigate to save/load
     updater.dispatcher.add_handler(CallbackQueryHandler(save_step, pattern=r'^save_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(save, pattern=r'^save$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(save_new, pattern=r'new_save$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(load, pattern=r'^load$'))
 
     # and finally the message handler, it handles all messages

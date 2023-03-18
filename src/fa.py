@@ -325,6 +325,103 @@ class FA:
 
         return Result.Ok(False)
     
+    def epsilon_closure(self, states: set[State]) -> set[State]:
+        """Calculate the epsilon closure of a set of states.
+
+        Args:
+            states (set[State]): The set of states to calculate the epsilon closure of.
+
+        Returns:
+            set[State]: The epsilon closure of the set of states.
+        """
+        out_closure = set(states)
+        
+        for state in states:
+            if self.transitions.get((state, Symbol.epsilon_symbol())) is not None:
+                out_closure = out_closure.union(self.transitions[(state, Symbol.epsilon_symbol())])
+                
+        return out_closure
+    
+    def determinize(self) -> Result[FA, str]:
+        """Determinize an *NFA* with the Subset Construction Algorithm.
+
+        Returns:
+            Result[FA, str]: The result of the determinization. Ok if successful, Err if not. Will Err if the FA is not an NFA.
+        """
+        
+        verify_result = self.verify_fa()
+        if verify_result.is_err():
+            return Result.Err(verify_result.unwrap_err())
+        
+        if verify_result.unwrap() == False:
+            return Result.Err("Cannot determinize a DFA.")
+
+        dfa_states = [State(0)]
+        dfa_starting_state = State(0)
+        
+        # a frozenset is a set that is immutable
+        # easy, right?
+        mapping: dict[frozenset, State] = {
+            frozenset(self.epsilon_closure({self.start_state})): State(0)
+        }
+        
+        dfa_transition_table: dict[tuple[State, Symbol], list[State]] = {}
+        
+        # we're indexing the states as we encounter them
+        counter = 0
+        
+        # message processing style queue
+        queue = [self.epsilon_closure({self.start_state})]
+        
+        while len(queue) > 0:
+            # FIFO, so we pop the first element
+            current_multi_state = queue.pop(0)
+            
+            # for each symbol in the alphabet
+            for symbol in self.alphabet:
+                # create a union of all the states that can be reached from the current state with the symbol
+                next_multi_state = set()
+                for state in current_multi_state:
+                    if self.transitions.get((state, symbol)) is not None:
+                        next_multi_state = next_multi_state.union(self.transitions[(state, symbol)])
+                
+                next_multi_state = self.epsilon_closure(next_multi_state)
+                
+                # find the state corresponding to the current multi-state
+                current_state = mapping[frozenset(current_multi_state)]
+                
+                if len(next_multi_state) > 0:
+                    # if the next multi-state is not in the mapping, add it
+                    if frozenset(next_multi_state) not in mapping:
+                        counter += 1
+                        dfa_states.append(State(counter))
+                        mapping[frozenset(next_multi_state)] = State(counter)
+                        queue.append(next_multi_state)
+                        
+                    # find the id of the next multi-state
+                    next_state = mapping[frozenset(next_multi_state)]
+                    
+                    # add the transition to the transition table
+                    dfa_transition_table[(current_state, symbol)] = [next_state]
+        
+        # construct the set of final states
+        dfa_final_states = []
+        for multi_state in mapping:
+            for state in multi_state:
+                if state in self.final_states:
+                    dfa_final_states.append(mapping[multi_state])
+                    break
+            
+        return Result.Ok(
+            FA(
+                states=dfa_states,
+                alphabet=copy.deepcopy(self.alphabet),
+                transitions=dfa_transition_table,
+                start_state=dfa_starting_state,
+                final_states=dfa_final_states
+            )    
+        )
+    
     def minimize(self) -> Result[FA, str]:
         """Minimize a *DFA* with the Table-Filling Algorithm."""
         
@@ -344,8 +441,6 @@ class FA:
                 if self.transitions.get((state, symbol)) is not None:
                     reachable_states.add(self.transitions[(state, symbol)][0])
                     
-        print(f"{reachable_states = }")
-
         # Convert to sorted list, for consistency
         reachable_states = sorted(list(reachable_states), key=lambda state: state.id)
         

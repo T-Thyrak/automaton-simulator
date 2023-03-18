@@ -60,6 +60,34 @@ def go_save(fa: FA, uid: int, fa_id: int | None) -> Result[int, str]:
         end_commit(db_conn)
         
         return Result.Ok(fa_id)
+
+def go_save_new(fa: FA, uid: int) -> Result[int, str]:
+    """Save the FA to the database without checking if it has been saved before."""
+    db_conn = create_connection()
+    
+    if db_conn is None:
+        return Result.Err("Could not connect to database.")
+    
+    # Insert the FA
+    query = "INSERT INTO `fatbl` (`fa_string`) VALUES (\"%s\")"
+    
+    res = execute_query(query, db_conn, (fa.json_serialize(indent=None),))
+    
+    if res is None:
+        return Result.Err("Could not insert FA into database.")
+    
+    # Get the ID of the FA
+    fa_id = res
+    
+    # Insert the record
+    query = "INSERT INTO `farecord` (`uid`, `fa_id`) VALUES (%s, %s)"
+    
+    res = execute_query(query, db_conn, (uid, fa_id))
+    
+    if res is None:
+        return Result.Err("Could not insert FA record into database.")
+    
+    return Result.Ok(fa_id)
     
 def go_load(uid: int, fa_id: int) -> Result[FA, str]:
     """Load the FA from the database."""

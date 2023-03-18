@@ -183,6 +183,66 @@ def test_minimize2():
     
     print(min_fa)
 
+def test_determinization():
+    # 0 a -> 0
+    # 0 b -> 0, 1
+    # 1 a -> 2
+    # 1 b -> 2
+    # 1 eps -> 2
+    # 2 a -> 3
+    # 2 b -> 3
+    # 3 final
+    
+    fa_string = """{
+        "states": ["q0", "q1", "q2", "q3"],
+        "alphabet": ["a", "b"],
+        "starting_state": "q0",
+        "final_states": ["q3"],
+        "transition_function": [
+            {
+                "from_state": "q0",
+                "with_symbol": "a",
+                "to_state": ["q0"]
+            },
+            {
+                "from_state": "q0",
+                "with_symbol": "b",
+                "to_state": ["q0", "q1"]
+            },
+            {
+                "from_state": "q1",
+                "with_symbol": "a",
+                "to_state": ["q2"]
+            },
+            {
+                "from_state": "q1",
+                "with_symbol": "b",
+                "to_state": ["q2"]
+            },
+            {
+                "from_state": "q1",
+                "with_symbol": "\u03B5",
+                "to_state": ["q2"]
+            },
+            {
+                "from_state": "q2",
+                "with_symbol": "a",
+                "to_state": ["q3"]
+            },
+            {
+                "from_state": "q2", 
+                "with_symbol": "b",
+                "to_state": ["q3"] 
+            }
+        ]
+    }"""
+    
+    fa = FA.json_deserialize(fa_string)
+    
+    det_fa = fa.determinize()
+    
+    print(det_fa.unwrap().json_serialize())
+
 if __name__ == "__main__":
-    test_minimize2()
+    test_determinization()
     pass
