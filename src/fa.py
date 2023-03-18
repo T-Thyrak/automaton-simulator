@@ -11,7 +11,7 @@ from state import State
 from sym import Symbol
 
 from ext.anything import union, difference
-from result import Result
+from ext.result import Result
 
 from context import Context
 from ext.anything import table_drop, position_of, choose, prune_none

@@ -1,5 +1,5 @@
 from fa import FA
-from result import Result
+from ext.result import Result
 from ext.sqlq import *
 from ext.anything import dequote
 
