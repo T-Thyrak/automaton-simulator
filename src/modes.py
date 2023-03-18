@@ -17,7 +17,7 @@ from fa import FA, states_list_from_str
 from ext.anything import intersection
 from menu import menu
 from saveload import go_save, go_load, show_saved_fa, is_valid_id
-from result import Result
+from ext.result import Result
 
 # 1. Design Finite Automaton
 # 1.1 State Step
