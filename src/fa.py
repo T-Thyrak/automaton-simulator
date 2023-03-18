@@ -153,6 +153,10 @@ class FA:
         if with_symbol not in self.alphabet and with_symbol != Symbol.epsilon_symbol():
             return Result.Err(f"Symbol {with_symbol} does not exist.")
         
+        for state in to_states:
+            if state not in self.states:
+                return Result.Err(f"State {state} does not exist.")
+        
         if self.transitions.get((from_state, with_symbol)) is not None:
             # do merge
             last_transition = self.transitions[(from_state, with_symbol)]
@@ -188,6 +192,9 @@ class FA:
             last_transition = self.transitions[(from_state, with_symbol)]
             self.transitions[(from_state, with_symbol)] = difference(last_transition, to_states, key=lambda s1, s2: s1.id == s2.id)
             has_deleted = True
+            
+            if len(self.transitions[(from_state, with_symbol)]) == 0:
+                del self.transitions[(from_state, with_symbol)]
         
         return Result.Ok(has_deleted)
     
@@ -220,6 +227,9 @@ class FA:
             diff = difference(last_transition, states, key=lambda s1, s2: s1.id == s2.id)
             self.transitions[(from_state, with_symbol)] = diff
             has_deleted = True
+            
+            if len(self.transitions[(from_state, with_symbol)]) == 0:
+                del self.transitions[(from_state, with_symbol)]
         
         return Result.Ok(has_deleted)
     
@@ -301,6 +311,87 @@ class FA:
         final_states = copy.deepcopy(self.final_states)
         
         return FA(states, alphabet, transitions, start_state, final_states)
+    
+    def test_accept_str(self, input_str: str) -> Result[bool, str]:
+        """Test whether a string is accepted by the FA.
+
+        Args:
+            input_str (str): The string to test
+
+        Returns:
+            Result[bool, str]: The result of the test. Ok(true) if accepted, Ok(false) if rejected. Err if undecidable.
+        """
+        
+        verify_result = self.verify_fa()
+        if verify_result.is_err():
+            return verify_result
+        
+        if verify_result.unwrap():
+            return self.test_accept_str_nfa(input_str)
+        else:
+            return self.test_accept_str_dfa(input_str)
+        
+    def test_accept_str_dfa(self, input_str: str) -> Result[bool, str]:
+        """Test whether a string is accepted by the DFA.
+
+        Args:
+            input_str (str): The string to test
+
+        Returns:
+            Result[bool, str]: The result of the test. Ok(true) if accepted, Ok(false) if rejected. Err if undecidable.
+        """
+        
+        if len(self.transitions) == 0:
+            return Result.Err("There is no transitions to check.")
+        
+        current_state = self.start_state
+        for c in input_str:
+            symbol = Symbol(c)
+            if not self.alphabet.contains(symbol):
+                return Result.Err(f"Symbol {symbol} is not in the alphabet.")
+            
+            if self.transitions.get((current_state, symbol)) is None:
+                return Result.Ok(False)
+            
+            current_state = self.transitions[(current_state, symbol)][0]
+        
+        return Result.Ok(self.final_states.contains(current_state))
+    
+    def test_accept_str_nfa(self, input_str: str) -> Result[bool, str]:
+        """Test whether a string is accepted by the NFA.
+
+        Args:
+            input_str (str): The string to test
+
+        Returns:
+            Result[bool, str]: The result of the test. Ok(true) if accepted, Ok(false) if rejected. Err if undecidable.
+        """
+        if len(self.transitions) == 0:
+            return Result.Err("There is no transitions to check.")
+        
+        return self.try_accept_state(self.starting_state, input_str)
+        
+    def try_accept_state(self, state: State, input_str: str) -> Result[bool, str]:
+        if len(input_str) == 0:
+            return Result.Ok(self.final_states.contains(state))
+        
+        symbol = Symbol(input_str[0])
+        next_states = self.transitions.get((state, symbol))
+        
+        if next_states is not None:
+            for next_state in next_states:
+                result = self.try_accept_state(next_state, input_str[1:])
+                if result.is_ok() and result.unwrap():
+                    return result
+        
+        epsilon_states = self.transitions.get((state, Symbol.epsilon_symbol()))
+        if epsilon_states is not None:
+            for epsilon_state in epsilon_states:
+                result = self.try_accept_state(epsilon_state, input_str)
+                if result.is_ok() and result.unwrap():
+                    return result
+                
+        return Result.Ok(False)
     
     def verify_fa(self) -> Result[bool, str]:
         """Verify whether FA is a NFA or DFA.
