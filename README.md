@@ -11,7 +11,6 @@ This is a Telegram bot that can simulate a finite automaton.
   - [Database Structure](#database-structure)
   - [License](#license)
 
-
 ## Usage
 
 1. Clone the repository.
