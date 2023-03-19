@@ -65,7 +65,6 @@ def transition_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : Transition", callback_data='add_transition_mode'),
-            InlineKeyboardButton("Edit : Transition", callback_data='edit_transition_mode'),
             InlineKeyboardButton("Delete : Transition", callback_data='delete_transition_mode'),
             
         ],

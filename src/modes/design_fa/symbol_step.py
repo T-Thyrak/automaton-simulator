@@ -61,7 +61,6 @@ def symbol_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : Symbol", callback_data='add_symbol_mode'),
-            InlineKeyboardButton("Edit : Symbol", callback_data='edit_symbol_mode'),
             InlineKeyboardButton("Delete : Symbol", callback_data='delete_symbol_mode'),
             
         ],

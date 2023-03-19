@@ -65,7 +65,6 @@ def finalstate_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : Final State", callback_data='add_final_states_mode'),
-            InlineKeyboardButton("Edit : Final State", callback_data='edit_finalstate_mode'),
             InlineKeyboardButton("Delete : Final State", callback_data='delete_finalstate_mode'),
             
         ],

@@ -59,7 +59,6 @@ def state_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : State(s)", callback_data='add_state_mode'),
-            InlineKeyboardButton("Edit : State(s)", callback_data='edit_state_mode'),
             InlineKeyboardButton("Delete : State(s)", callback_data='delete_state_mode'),
             
         ],

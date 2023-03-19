@@ -158,7 +158,6 @@ class FA:
 
     def delete_start_state(self, start_state: State) -> bool:
         """Delete Start State to the FA."""
-        print(f"Deteting Start_State {start_state}") 
 
         self.start_state=''
         return True

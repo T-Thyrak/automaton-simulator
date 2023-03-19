@@ -25,7 +25,7 @@ def test_step_handle(update: Update, context: CallbackContext) -> str:
     fa: FA = Context.context[update.effective_user.id]['fa']
     result = fa.test_accept_str(string)
     if result.is_err():
-        return f"Error: {result.err()}"
+        return f"Error: {result.unwrap_err()}"
     
     res = result.unwrap()
     
