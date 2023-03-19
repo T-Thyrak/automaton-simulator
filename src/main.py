@@ -37,6 +37,14 @@ from modes.det_fa import det_step
 from modes.min_fa import min_step
 from modes.save_load_fa import save_step, save, save_new, load, load_mode_handle, just_back
 
+from modes import \
+        state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode, delete_state_mode_handle, delete_state_mode, \
+        symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg,delete_symbol_mode_handle,  delete_symbol_mode, \
+        startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,delete_start_state_mode, detete_start_state_mode_handle,\
+        finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle, add_final_states_mode, delete_final_states_mode_handle, delete_final_states_mode,\
+        transition_step, transition_mode, transition_mode_msg, transition_mode_button, add_transition_mode_handle, add_transition_mode, delete_transition_mode_handle, delete_transition_mode, \
+        verify_step,test_string_step,det_step,min_step, test_string_handle, test_string_step_button
+
 
 def prepare():
     """Prepare the environment."""
@@ -103,7 +111,7 @@ def main() -> None:
     # create the updater
     updater = Updater(token=token, use_context=True)
     
-    # add the command handlers, they're the messages that starts with `/`
+    # add the command handlers, they're the messages that starts with /
     updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CommandHandler('menu', menu))
     updater.dispatcher.add_handler(CommandHandler('done', done))
@@ -121,17 +129,20 @@ def main() -> None:
     updater.dispatcher.add_handler(CallbackQueryHandler(symbol_step, pattern=r'^symbol_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(symbol_mode, pattern=r'^symbol_mode$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(add_symbol_mode, pattern=r'^add_symbol_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(delete_symbol_mode, pattern=r'^delete_symbol_mode$'))
 
     # navigate to start state
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_step, pattern=r'^startstate_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(startstate_mode, pattern=r'^startstate_mode$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(add_start_state_mode, pattern=r'^add_start_state_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(delete_start_state_mode, pattern=r'delete_start_state_mode$'))
 
     
     # navigate to final state
     updater.dispatcher.add_handler(CallbackQueryHandler(finalstate_step, pattern=r'^finalstate_step$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(finalstate_mode, pattern=r'^finalstate_mode$'))
     updater.dispatcher.add_handler(CallbackQueryHandler(add_final_states_mode, pattern=r'^add_final_states_mode$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(delete_final_states_mode, pattern=r'^delete_final_states_mode$'))
 
 
     # navigate to transition
@@ -145,7 +156,9 @@ def main() -> None:
     updater.dispatcher.add_handler(CallbackQueryHandler(verify_step, pattern=r'^verify_step$'))
 
     # navigate to test finite automata
-    updater.dispatcher.add_handler(CallbackQueryHandler(test_step, pattern=r'^test_step$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(test_string_step, pattern=r'^test_string_step$'))
+    updater.dispatcher.add_handler(CallbackQueryHandler(test_string_handle, pattern=r'^test_string_handle$'))
+
 
     # navigate to determinization
     updater.dispatcher.add_handler(CallbackQueryHandler(det_step, pattern=r'^det_step$'))
@@ -160,7 +173,7 @@ def main() -> None:
     updater.dispatcher.add_handler(CallbackQueryHandler(load, pattern=r'^load$'))
 
     # and finally the message handler, it handles all messages
-    # here the `~Filters.command` means that we don't want to handle commands
+    # here the ~Filters.command means that we don't want to handle commands
     updater.dispatcher.add_handler(MessageHandler(
         Filters.text & ~Filters.command,
         message_handler
@@ -199,16 +212,26 @@ def message_handler(update: Update, context: CallbackContext) -> None:
     if mode == 'add_symbol_mode':
         update.message.reply_text(text=add_symbol_mode_handle(update, context))
         update.message.reply_text(text=symbol_mode_msg(update.effective_user.id), reply_markup=symbol_mode_button())
+    if mode == 'delete_symbol_mode':
+        update.message.reply_text(text=delete_symbol_mode_handle(update, context))
+        update.message.reply_text(text=state_mode_msg(update.effective_user.id), reply_markup=symbol_mode_button())
     if mode == 'add_start_state_mode':
         update.message.reply_text(text=add_start_state_mode_handle(update, context))
         update.message.reply_text(text=startstate_mode_msg(update.effective_user.id), reply_markup=startstate_mode_button())
+    if mode == 'delete_start_state_mode':
+        update.message.reply_text(text=detete_start_state_mode_handle(update, context))
+        update.message.reply_text(text=startstate_mode_msg(update.effective_user.id), reply_markup=symbol_mode_button())
     if mode == 'add_final_states_mode':
         update.message.reply_text(text=add_final_states_mode_handle(update, context))
+        update.message.reply_text(text=finalstate_mode_msg(update.effective_user.id), reply_markup=finalstate_mode_button())
+    if mode == 'delete_final_states_mode':
+        update.message.reply_text(text=delete_final_states_mode_handle(update, context))
         update.message.reply_text(text=finalstate_mode_msg(update.effective_user.id), reply_markup=finalstate_mode_button())
     if mode == 'add_transition_mode':
         update.message.reply_text(text=add_transition_mode_handle(update, context))
     if mode == 'delete_transition_mode':
         update.message.reply_text(text=delete_transition_mode_handle(update, context))
+
     if mode == 'test_fa':
         update.message.reply_text(text=test_step_handle(update, context))
     if mode == 'load_mode':
@@ -219,4 +242,3 @@ def message_handler(update: Update, context: CallbackContext) -> None:
 if __name__ == '__main__':
     Context.context = load_context()
     main()
-    

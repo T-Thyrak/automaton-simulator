@@ -34,7 +34,7 @@ def menumode_keyboard() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton("Design FA", callback_data='state_step'),
             InlineKeyboardButton("Verify FA", callback_data='verify_step'),
-            InlineKeyboardButton("Test String", callback_data='test_step'),
+            InlineKeyboardButton("Test String", callback_data='test_string_step'),
         ],
         [
             InlineKeyboardButton("Determinization", callback_data='det_step'),

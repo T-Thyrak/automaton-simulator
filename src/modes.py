@@ -13,8 +13,10 @@ from state import State
 from sym import Symbol
 
 from validate import validate_state_name, validate_symbol
+
 from fa import FA, states_list_from_str
 from ext.anything import intersection
+
 from menu import menu
 from saveload import go_save, go_load, show_saved_fa, is_valid_id
 from ext.result import Result
@@ -72,7 +74,6 @@ def state_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : State(s)", callback_data='add_state_mode'),
-            InlineKeyboardButton("Edit : State(s)", callback_data='edit_state_mode'),
             InlineKeyboardButton("Delete : State(s)", callback_data='delete_state_mode'),
             
         ],
@@ -212,7 +213,6 @@ def symbol_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : Symbol", callback_data='add_symbol_mode'),
-            InlineKeyboardButton("Edit : Symbol", callback_data='edit_symbol_mode'),
             InlineKeyboardButton("Delete : Symbol", callback_data='delete_symbol_mode'),
             
         ],
@@ -261,7 +261,42 @@ def add_symbol_mode_handle(update: Update, context: CallbackContext) -> str:
     else:
         return "No symbol(s) have been added."
 
+def delete_symbol_mode(update: Update, context: CallbackContext) -> None:
+    """Delete states from states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the symbols that you want to delete, separated by a space.\
+          \n All symbols will only have one character. \
+          \n Example: `a b eps` \
+          \n\n Current symbols: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].alphabet)))}` "
+    
+    Context.context[update.effective_user.id]['mode'] = 'delete_symbol_mode'
+    
+    query.edit_message_text(text=text)
+    
+def delete_symbol_mode_handle(update: Update, context: CallbackContext) -> None:
+    """Handle input from delete_symbol_mode."""
+    
+    msg = update.message.text
+    symbols = msg.split()
 
+    if not all(map(validate_symbol, symbols)):
+        Context.context[update.effective_user.id]['mode'] = None
+        return "Invalid Symbol name(s). Please try again."
+    
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_deleted = fa.delete_symbol_str(symbols)
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_deleted:
+        return "Symbol(s) have been deleted."
+    else:
+        return "No symbol(s) have been deleted."
 # 1.3 Start State
 
 def startstate_step(update: Update, context: CallbackContext) -> None:
@@ -319,8 +354,7 @@ def startstate_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : Start State", callback_data='add_start_state_mode'),
-            InlineKeyboardButton("Edit : Start State", callback_data='edit_startstate_mode'),
-            InlineKeyboardButton("Delete : Start State", callback_data='delete_startstate_mode'),
+            InlineKeyboardButton("Delete : Start State", callback_data='delete_start_state_mode'),
             
         ],
         [
@@ -363,6 +397,37 @@ def add_start_state_mode_handle(update: Update, context: CallbackContext) -> str
         return f" Start State have been added."
     else:
         return "No state have been added."
+    
+def delete_start_state_mode(update: Update, context: CallbackContext) -> None:
+    """Add states to states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the start state that you want to add (Only One state)\
+           \n Example: `q0` "
+    
+    Context.context[update.effective_user.id]['mode'] = 'delete_start_state_mode'
+    
+    query.edit_message_text(text=text)
+    # query.edit_message_text(text=)
+    
+def detete_start_state_mode_handle(update: Update, context: CallbackContext) -> str:
+    """Handle input from add_state_mode."""
+    msg = update.message.text
+    start_state = msg.split()
+    print(start_state)
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_deleted = fa.delete_start_state_str(start_state[0])
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_deleted:
+        return f" Start State have been deleted."
+    else:
+        return "No state have been deleted."
     
 
 # 1.4 Final State
@@ -423,8 +488,7 @@ def finalstate_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : Final State", callback_data='add_final_states_mode'),
-            InlineKeyboardButton("Edit : Final State", callback_data='edit_finalstate_mode'),
-            InlineKeyboardButton("Delete : Final State", callback_data='delete_finalstate_mode'),
+            InlineKeyboardButton("Delete : Final State", callback_data='delete_final_states_mode'),
             
         ],
         [
@@ -472,6 +536,45 @@ def add_final_states_mode_handle(update: Update, context: CallbackContext) -> st
         return f"Final State(s) have been added."
     else:
         return "No state(s) have been added."
+#delete final state
+def delete_final_states_mode(update: Update, context: CallbackContext) -> None:
+    """Add states to states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the final states that you want to add, separated by a space.\
+          \n All states must start with the letter 'q' and ends with any amount of numbers. \
+          \n Example: `q0 q1 q2`.\
+          \n\n Your Current Final States: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].final_states)))}`. "
+          
+    
+    Context.context[update.effective_user.id]['mode'] = 'delete_final_states_mode'
+    
+    query.edit_message_text(text=text)
+    
+def delete_final_states_mode_handle(update: Update, context: CallbackContext) -> str:
+    """Handle input from add_state_mode."""
+    
+    msg = update.message.text
+    final_states = msg.split()
+
+    if not all(map(validate_state_name, final_states)):
+        Context.context[update.effective_user.id]['mode'] = None
+        return "Invalid final state name(s). Please try again."
+    
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_deleted = fa.delete_final_states_str(final_states)
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_deleted:
+        return f"Final State(s) have been deleted."
+    else:
+        return "No final state(s) have been deleted."
+
 
 # 1.5 Transition
 def transition_step(update: Update, context: CallbackContext) -> None:
@@ -532,7 +635,6 @@ def transition_mode_button() -> InlineKeyboardMarkup:
     button = [
         [
             InlineKeyboardButton("Add : Transition", callback_data='add_transition_mode'),
-            InlineKeyboardButton("Edit : Transition", callback_data='edit_transition_mode'),
             InlineKeyboardButton("Delete : Transition", callback_data='delete_transition_mode'),
             
         ],
@@ -681,25 +783,87 @@ def verify_step_button() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(button)
 
-# 3. Test Finite Automaton
-def test_step(update: Update, context: CallbackContext) -> None:
+# 3. Test Finite Automaton => Process String
+def test_string_step(update: Update, context: CallbackContext) -> None:
     """ Handler for test step"""
 
     query = update.callback_query
     query.answer()
+    text=f"Input String you want run automation below :"
+    Context.context[update.effective_user.id]['mode'] = 'test_string_step'
+    # query.edit_message_text(text=text, reply_markup=test_string_step_button())
+    query.edit_message_text(text=text)
+    query.edit_message_text(text=text, reply_markup=test_string_step_button())
+    Context.context[update.effective_user.id]['mode'] = 'test_string_step'
 
-    query.edit_message_text("Under Construction", reply_markup=test_step_button())
-
-def test_step_button() -> InlineKeyboardMarkup: 
+def test_string_step_button() -> InlineKeyboardMarkup: 
     """ Show test button and Next step button"""
 
     button = [
         [
-            InlineKeyboardButton("Back", callback_data='menu'),
+            InlineKeyboardButton("Back to Menu", callback_data='menu'),
         ],
     ]
     return InlineKeyboardMarkup(button)
 
+def test_string_handle(update: Update, context:CallbackContext) -> str:
+    """Handle string from user"""
+
+    current_state = str( Context.context[update.effective_user.id]['fa'].start_state)
+    process = Context.context[update.effective_user.id]['fa'].pretty_transition()
+    accept_state = pformat(list(map(str, Context.context[update.effective_user.id]['fa'].final_states)))
+
+    msg = update.message.text
+    pro_str= msg.split()
+    has_added = add_process_str(pro_str)
+   
+
+    Context.context[update.effective_user.id]['mode'] = None
+    print(pro_str)
+
+    # Loop to test the input string
+        
+    if has_added:
+        
+        string = iter(pro_str)
+        current_state = process[(current_state, string)]
+        
+        while True:
+            if current_state is None:
+                print(f'Input String `{pro_str}` is Rejected')  
+                result = f'Input String `{pro_str}` is Rejected' 
+                break
+            
+            else:
+                if (current_state in accept_state):
+                    print(f'Input String `{pro_str}` is Accepted')
+                    result = f'Input String `{pro_str}` is Accepted' 
+                else:
+                    print(f'Input String `{pro_str}` is Rejected')
+                    result = f'Input String `{pro_str}` is Rejected' 
+
+
+        # for string in pro_str:
+        #     current_state = process[(current_state, string)]
+
+        #     if current_state is None:
+        #         print(f'Input String `{pro_str}` is Rejected')  
+        #         result = f'Input String `{pro_str}` is Rejected' 
+        #         break
+            
+        #     else:
+        #         if (current_state in accept_state):
+        #             print(f'Input String `{pro_str}` is Accepted')
+        #             result = f'Input String `{pro_str}` is Accepted' 
+        #         else:
+        #             print(f'Input String `{pro_str}` is Rejected')
+        #             result = f'Input String `{pro_str}` is Rejected' 
+
+        result=f"String `{pro_str}` have been added. `{current_state}`  `{process}`"
+        return result
+    else:
+        return "string have been added."
+    
 # 4. Determinization Finite Automaton
 def det_step(update: Update, context: CallbackContext) -> None:
     """ Handler for state step"""

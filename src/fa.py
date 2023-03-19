@@ -50,7 +50,7 @@ class FA:
 
         if has_added:
             # sort ascending
-            self.states.sort(key=lambda state: state.id)
+            self.states.sort(key=lambda state: state.symbol)
 
         return has_added
    
@@ -126,9 +126,67 @@ class FA:
 
         if has_deleted:
             # sort ascending
-            self.states.sort(key=lambda state: state.id)
+            self.states.sort(key=lambda state: state.symbol)
 
         return has_deleted
+    
+    # delete symbol
+    def delete_symbol_str(self, symbol: list[Symbol]) -> bool:
+        """Delete states from a list of strings."""
+        return self.delete_symbols(symbols_list_from_str(symbol))
+
+    def delete_symbols(self, symbols: list[Symbol]) -> bool:
+        """Delete states from the FA."""
+        has_deleted = False
+        for symbol in symbols:
+            print(f"Deleting symbol {symbol}")
+
+            if symbol in self.alphabet:
+                self.alphabet.remove(symbol)
+                has_deleted = True
+
+        if has_deleted:
+            # sort ascending
+            self.alphabet.sort(key=lambda symbol: symbol.symbol)
+
+        return has_deleted
+    
+     # delete start state 
+    def delete_start_state_str(self, start_state: str) -> bool:
+        """Add states from a list of strings."""
+        return self.delete_start_state(State(int(start_state[1:])))
+
+    def delete_start_state(self, start_state: State) -> bool:
+        """Delete Start State to the FA."""
+        print(f"Deteting Start_State {start_state}") 
+
+        self.start_state=''
+        return True
+   
+    # delete final_state
+
+    def delete_final_states_str(self, final_states: list[str]) -> bool:
+        """Add states from a list of strings."""
+        return self.delete_final_states(final_states_list_from_str(final_states))
+
+    def delete_final_states(self, final_states: list[State]) -> bool:
+        """Deleting Final State to the FA."""
+
+        has_deleted = False
+        for final_states in final_states:
+            print(f"Deleting final state {final_states}")
+
+            # no duplicates
+            if final_states in self.final_states:
+                self.final_states.remove(final_states)
+                has_deleted = True
+
+        if has_deleted:
+            # sort ascending
+            self.final_states.sort(key=lambda final_states: final_states.id)
+
+        return has_deleted
+    # delete transition
     
     def add_transition_str(self, from_state: str, with_symbol: str, to_states: list[str]) -> Result[bool, str]:
         """Add a transition from a string."""
