@@ -50,7 +50,7 @@ class FA:
 
         if has_added:
             # sort ascending
-            self.states.sort(key=lambda state: state.symbol)
+            self.states.sort(key=lambda state: state.id)
 
         return has_added
    
@@ -126,7 +126,7 @@ class FA:
 
         if has_deleted:
             # sort ascending
-            self.states.sort(key=lambda state: state.symbol)
+            self.states.sort(key=lambda state: state.id)
 
         return has_deleted
     
@@ -167,7 +167,7 @@ class FA:
 
     def delete_final_states_str(self, final_states: list[str]) -> bool:
         """Add states from a list of strings."""
-        return self.delete_final_states(final_states_list_from_str(final_states))
+        return self.delete_final_states(states_list_from_str(final_states))
 
     def delete_final_states(self, final_states: list[State]) -> bool:
         """Deleting Final State to the FA."""
@@ -534,6 +534,7 @@ class FA:
         while len(queue) > 0:
             # FIFO, so we pop the first element
             current_multi_state = queue.pop(0)
+            print(current_multi_state)
             
             # for each symbol in the alphabet
             for symbol in self.alphabet:
@@ -548,19 +549,19 @@ class FA:
                 # find the state corresponding to the current multi-state
                 current_state = mapping[frozenset(current_multi_state)]
                 
-                if len(next_multi_state) > 0:
-                    # if the next multi-state is not in the mapping, add it
-                    if frozenset(next_multi_state) not in mapping:
-                        counter += 1
-                        dfa_states.append(State(counter))
-                        mapping[frozenset(next_multi_state)] = State(counter)
-                        queue.append(next_multi_state)
-                        
-                    # find the id of the next multi-state
-                    next_state = mapping[frozenset(next_multi_state)]
+                # if len(next_multi_state) > 0:
+                # if the next multi-state is not in the mapping, add it
+                if frozenset(next_multi_state) not in mapping:
+                    counter += 1
+                    dfa_states.append(State(counter))
+                    mapping[frozenset(next_multi_state)] = State(counter)
+                    queue.append(next_multi_state)
                     
-                    # add the transition to the transition table
-                    dfa_transition_table[(current_state, symbol)] = [next_state]
+                # find the id of the next multi-state
+                next_state = mapping[frozenset(next_multi_state)]
+                
+                # add the transition to the transition table
+                dfa_transition_table[(current_state, symbol)] = [next_state]
         
         # construct the set of final states
         dfa_final_states = []

@@ -107,3 +107,35 @@ def add_start_state_mode_handle(update: Update, context: CallbackContext) -> str
     else:
         return "No state have been added."
     
+
+def delete_start_state_mode(update: Update, context: CallbackContext) -> None:
+    """Add states to states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the start state that you want to add (Only One state)\
+           \n Example: `q0` "
+    
+    Context.context[update.effective_user.id]['mode'] = 'delete_start_state_mode'
+    
+    query.edit_message_text(text=text)
+    # query.edit_message_text(text=)
+    
+def delete_start_state_mode_handle(update: Update, context: CallbackContext) -> str:
+    """Handle input from add_state_mode."""
+    msg = update.message.text
+    start_state = msg.split()
+    print(start_state)
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_deleted = fa.delete_start_state_str(start_state[0])
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_deleted:
+        return f" Start State have been deleted."
+    else:
+        return "No state have been deleted."
+    

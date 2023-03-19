@@ -1,12 +1,9 @@
-import os
-from dotenv import load_dotenv
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
+from telegram.ext import CallbackContext
 
-from fa import FA, fa_debug as debug, test_debug
+from fa import FA
 
-from context import Context, unload_context, load_context
+from context import Context
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /menu is issued."""

@@ -1,9 +1,9 @@
-from ext.console import CONSOLE
+# from ext.console import CONSOLE
 
 import os
 from dotenv import load_dotenv
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 
 from fa import FA, fa_debug as debug
@@ -12,22 +12,14 @@ from context import Context, unload_context, load_context
 
 from menu import menu, call_menu, menu_message, menumode_keyboard
 
-# from modes import \
-#         state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode, delete_state_mode_handle, delete_state_mode, \
-#         symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg, \
-#         startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,\
-#         finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle,add_final_states_mode, \
-#         transition_step, transition_mode, transition_mode_msg, transition_mode_button, add_transition_mode_handle, add_transition_mode, delete_transition_mode_handle, delete_transition_mode, \
-#         verify_step,test_step,det_step,min_step, save_step, save, load, load_mode_handle, just_back
-
 from modes.design_fa.state_step import state_step, state_mode, add_state_mode, \
     add_state_mode_handle, delete_state_mode, delete_state_mode_handle, state_mode_msg, state_mode_button
 from modes.design_fa.symbol_step import symbol_step, symbol_mode, add_symbol_mode, \
-    add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg
+    add_symbol_mode_handle, delete_symbol_mode, delete_symbol_mode_handle, symbol_mode_button, symbol_mode_msg
 from modes.design_fa.start_state_step import startstate_step, startstate_mode, add_start_state_mode, \
-    add_start_state_mode_handle, startstate_mode_msg, startstate_mode_button
+    add_start_state_mode_handle, delete_start_state_mode, delete_start_state_mode_handle, startstate_mode_msg, startstate_mode_button
 from modes.design_fa.final_states_step import finalstate_step, finalstate_mode, add_final_states_mode, \
-    add_final_states_mode_handle, finalstate_mode_msg, finalstate_mode_button
+    add_final_states_mode_handle, delete_final_states_mode, delete_final_states_mode_handle, finalstate_mode_msg, finalstate_mode_button
 from modes.design_fa.transition_step import transition_step, transition_mode, add_transition_mode, \
     add_transition_mode_handle, delete_transition_mode, delete_transition_mode_handle, \
     transition_mode_msg, transition_mode_button
@@ -36,15 +28,6 @@ from modes.test_fa import test_step, test_step_handle
 from modes.det_fa import det_step
 from modes.min_fa import min_step
 from modes.save_load_fa import save_step, save, save_new, load, load_mode_handle, just_back
-
-from modes import \
-        state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode, delete_state_mode_handle, delete_state_mode, \
-        symbol_step, symbol_mode, add_symbol_mode, add_symbol_mode_handle, symbol_mode_button, symbol_mode_msg,delete_symbol_mode_handle,  delete_symbol_mode, \
-        startstate_step, startstate_mode, startstate_mode_msg, startstate_mode_button, add_start_state_mode_handle,add_start_state_mode,delete_start_state_mode, detete_start_state_mode_handle,\
-        finalstate_step,finalstate_mode, finalstate_mode_msg, finalstate_mode_button, add_final_states_mode_handle, add_final_states_mode, delete_final_states_mode_handle, delete_final_states_mode,\
-        transition_step, transition_mode, transition_mode_msg, transition_mode_button, add_transition_mode_handle, add_transition_mode, delete_transition_mode_handle, delete_transition_mode, \
-        verify_step,test_string_step,det_step,min_step, test_string_handle, test_string_step_button
-
 
 def prepare():
     """Prepare the environment."""
@@ -73,16 +56,16 @@ def done(update: Update, context: CallbackContext) -> None:
     ]:
         return
     
-    if Context.context[update.effective_user.id]['id'] in [
+    if Context.context[update.effective_user.id]['mode'] in [
         "add_transition_mode",
         "delete_transition_mode"
     ]:
-        Context.context[update.effective_user.id]['id'] = None
+        Context.context[update.effective_user.id]['mode'] = None
         update.message.reply_text(text=transition_mode_msg(update.effective_user.id), reply_markup=transition_mode_button())
         return
     
-    if Context.context[update.effective_user.id]['id'] == "test_fa":
-        Context.context[update.effective_user.id]['id'] = None
+    if Context.context[update.effective_user.id]['mode'] == "test_fa":
+        Context.context[update.effective_user.id]['mode'] = None
         update.message.reply_text(text=menu_message(), reply_markup=menumode_keyboard())
         return
 
@@ -156,9 +139,7 @@ def main() -> None:
     updater.dispatcher.add_handler(CallbackQueryHandler(verify_step, pattern=r'^verify_step$'))
 
     # navigate to test finite automata
-    updater.dispatcher.add_handler(CallbackQueryHandler(test_string_step, pattern=r'^test_string_step$'))
-    updater.dispatcher.add_handler(CallbackQueryHandler(test_string_handle, pattern=r'^test_string_handle$'))
-
+    updater.dispatcher.add_handler(CallbackQueryHandler(test_step, pattern=r'^test_step$'))
 
     # navigate to determinization
     updater.dispatcher.add_handler(CallbackQueryHandler(det_step, pattern=r'^det_step$'))
@@ -219,7 +200,7 @@ def message_handler(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(text=add_start_state_mode_handle(update, context))
         update.message.reply_text(text=startstate_mode_msg(update.effective_user.id), reply_markup=startstate_mode_button())
     if mode == 'delete_start_state_mode':
-        update.message.reply_text(text=detete_start_state_mode_handle(update, context))
+        update.message.reply_text(text=delete_start_state_mode_handle(update, context))
         update.message.reply_text(text=startstate_mode_msg(update.effective_user.id), reply_markup=symbol_mode_button())
     if mode == 'add_final_states_mode':
         update.message.reply_text(text=add_final_states_mode_handle(update, context))

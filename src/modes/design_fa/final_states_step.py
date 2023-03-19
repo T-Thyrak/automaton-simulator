@@ -114,3 +114,41 @@ def add_final_states_mode_handle(update: Update, context: CallbackContext) -> st
         return f"Final State(s) have been added."
     else:
         return "No state(s) have been added."
+    
+def delete_final_states_mode(update: Update, context: CallbackContext) -> None:
+    """Add states to states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the final states that you want to add, separated by a space.\
+          \n All states must start with the letter 'q' and ends with any amount of numbers. \
+          \n Example: `q0 q1 q2`.\
+          \n\n Your Current Final States: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].final_states)))}`. "
+          
+    
+    Context.context[update.effective_user.id]['mode'] = 'delete_final_states_mode'
+    
+    query.edit_message_text(text=text)
+    
+def delete_final_states_mode_handle(update: Update, context: CallbackContext) -> str:
+    """Handle input from add_state_mode."""
+    
+    msg = update.message.text
+    final_states = msg.split()
+
+    if not all(map(validate_state_name, final_states)):
+        Context.context[update.effective_user.id]['mode'] = None
+        return "Invalid final state name(s). Please try again."
+    
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_deleted = fa.delete_final_states_str(final_states)
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_deleted:
+        return f"Final State(s) have been deleted."
+    else:
+        return "No final state(s) have been deleted."

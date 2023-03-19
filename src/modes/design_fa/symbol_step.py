@@ -109,3 +109,40 @@ def add_symbol_mode_handle(update: Update, context: CallbackContext) -> str:
         return "Symbol(s) have been added."
     else:
         return "No symbol(s) have been added."
+
+def delete_symbol_mode(update: Update, context: CallbackContext) -> None:
+    """Delete states from states list."""
+    
+    query = update.callback_query
+    query.answer()
+    
+    text = f" Enter the symbols that you want to delete, separated by a space.\
+          \n All symbols will only have one character. \
+          \n Example: `a b eps` \
+          \n\n Current symbols: `{pformat(list(map(str, Context.context[update.effective_user.id]['fa'].alphabet)))}` "
+    
+    Context.context[update.effective_user.id]['mode'] = 'delete_symbol_mode'
+    
+    query.edit_message_text(text=text)
+
+def delete_symbol_mode_handle(update: Update, context: CallbackContext) -> None:
+    """Handle input from delete_symbol_mode."""
+    
+    msg = update.message.text
+    symbols = msg.split()
+
+    if not all(map(validate_symbol, symbols)):
+        Context.context[update.effective_user.id]['mode'] = None
+        return "Invalid Symbol name(s). Please try again."
+    
+    fa: FA = Context.context[update.effective_user.id]['fa']
+    
+    has_deleted = fa.delete_symbol_str(symbols)
+    
+    Context.context[update.effective_user.id]['mode'] = None
+    Context.context[update.effective_user.id]['fa'] = fa
+    
+    if has_deleted:
+        return "Symbol(s) have been deleted."
+    else:
+        return "No symbol(s) have been deleted."
