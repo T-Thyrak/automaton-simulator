@@ -10,7 +10,7 @@ from fa import FA, fa_debug as debug
 
 from context import Context, unload_context, load_context
 
-from menu import menu, call_menu
+from menu import menu, call_menu, menu_message, menumode_keyboard
 
 # from modes import \
 #         state_step, state_mode ,state_mode_msg,state_mode_button,add_state_mode_handle,add_state_mode, delete_state_mode_handle, delete_state_mode, \
@@ -32,7 +32,7 @@ from modes.design_fa.transition_step import transition_step, transition_mode, ad
     add_transition_mode_handle, delete_transition_mode, delete_transition_mode_handle, \
     transition_mode_msg, transition_mode_button
 from modes.verify_fa import verify_step
-from modes.test_fa import test_step
+from modes.test_fa import test_step, test_step_handle
 from modes.det_fa import det_step
 from modes.min_fa import min_step
 from modes.save_load_fa import save_step, save, save_new, load, load_mode_handle, just_back
@@ -60,13 +60,23 @@ def done(update: Update, context: CallbackContext) -> None:
     
     if Context.context[update.effective_user.id]['mode'] not in [
         "add_transition_mode",
-        "delete_transition_mode"
+        "delete_transition_mode",
+        "test_fa"
     ]:
         return
     
-    Context.context[update.effective_user.id]['mode'] = None
-
-    update.message.reply_text(text=transition_mode_msg(update.effective_user.id), reply_markup=transition_mode_button())
+    if Context.context[update.effective_user.id]['id'] in [
+        "add_transition_mode",
+        "delete_transition_mode"
+    ]:
+        Context.context[update.effective_user.id]['id'] = None
+        update.message.reply_text(text=transition_mode_msg(update.effective_user.id), reply_markup=transition_mode_button())
+        return
+    
+    if Context.context[update.effective_user.id]['id'] == "test_fa":
+        Context.context[update.effective_user.id]['id'] = None
+        update.message.reply_text(text=menu_message(), reply_markup=menumode_keyboard())
+        return
 
 def reset(update: Update, context: CallbackContext) -> None:
     if Context.context.get(update.effective_user.id) is None:
@@ -199,6 +209,8 @@ def message_handler(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(text=add_transition_mode_handle(update, context))
     if mode == 'delete_transition_mode':
         update.message.reply_text(text=delete_transition_mode_handle(update, context))
+    if mode == 'test_fa':
+        update.message.reply_text(text=test_step_handle(update, context))
     if mode == 'load_mode':
         update.message.reply_text(text=load_mode_handle(update, context), reply_markup=just_back())
     
