@@ -302,7 +302,7 @@ class FA:
         
         return sb
     
-    def copy(self) -> FA:
+    def _copy(self) -> FA:
         """Performs deep copy of the FA."""
         states = copy.deepcopy(self.states)
         alphabet = copy.deepcopy(self.alphabet)
@@ -327,11 +327,11 @@ class FA:
             return verify_result
         
         if verify_result.unwrap():
-            return self.test_accept_str_nfa(input_str)
+            return self._test_accept_str_nfa(input_str)
         else:
-            return self.test_accept_str_dfa(input_str)
+            return self._test_accept_str_dfa(input_str)
         
-    def test_accept_str_dfa(self, input_str: str) -> Result[bool, str]:
+    def _test_accept_str_dfa(self, input_str: str) -> Result[bool, str]:
         """Test whether a string is accepted by the DFA.
 
         Args:
@@ -347,7 +347,7 @@ class FA:
         current_state = self.start_state
         for c in input_str:
             symbol = Symbol(c)
-            if not self.alphabet.contains(symbol):
+            if symbol not in self.alphabet:
                 return Result.Err(f"Symbol {symbol} is not in the alphabet.")
             
             if self.transitions.get((current_state, symbol)) is None:
@@ -355,9 +355,9 @@ class FA:
             
             current_state = self.transitions[(current_state, symbol)][0]
         
-        return Result.Ok(self.final_states.contains(current_state))
+        return Result.Ok(current_state in self.final_states)
     
-    def test_accept_str_nfa(self, input_str: str) -> Result[bool, str]:
+    def _test_accept_str_nfa(self, input_str: str) -> Result[bool, str]:
         """Test whether a string is accepted by the NFA.
 
         Args:
@@ -369,25 +369,34 @@ class FA:
         if len(self.transitions) == 0:
             return Result.Err("There is no transitions to check.")
         
-        return self.try_accept_state(self.starting_state, input_str)
+        return self._try_accept_state(self.start_state, input_str)
         
-    def try_accept_state(self, state: State, input_str: str) -> Result[bool, str]:
+    def _try_accept_state(self, starting_state: State, input_str: str) -> Result[bool, str]:
+        """Try to accept the state. If there is still input string, call this function recursively.
+
+        Args:
+            state (State): Current state
+            input_str (str): Input string
+
+        Returns:
+            Result[bool, str]: The result of the test. Ok(true) if accepted, Ok(false) if rejected. Err if undecidable.
+        """
         if len(input_str) == 0:
-            return Result.Ok(self.final_states.contains(state))
+            return Result.Ok(starting_state in self.final_states)
         
         symbol = Symbol(input_str[0])
-        next_states = self.transitions.get((state, symbol))
+        next_states = self.transitions.get((starting_state, symbol))
         
         if next_states is not None:
             for next_state in next_states:
-                result = self.try_accept_state(next_state, input_str[1:])
+                result = self._try_accept_state(next_state, input_str[1:])
                 if result.is_ok() and result.unwrap():
                     return result
         
-        epsilon_states = self.transitions.get((state, Symbol.epsilon_symbol()))
+        epsilon_states = self.transitions.get((starting_state, Symbol.epsilon_symbol()))
         if epsilon_states is not None:
             for epsilon_state in epsilon_states:
-                result = self.try_accept_state(epsilon_state, input_str)
+                result = self._try_accept_state(epsilon_state, input_str)
                 if result.is_ok() and result.unwrap():
                     return result
                 
@@ -416,7 +425,7 @@ class FA:
 
         return Result.Ok(False)
     
-    def epsilon_closure(self, states: set[State]) -> set[State]:
+    def _epsilon_closure(self, states: set[State]) -> set[State]:
         """Calculate the epsilon closure of a set of states.
 
         Args:
@@ -430,7 +439,7 @@ class FA:
         for state in states:
             if self.transitions.get((state, Symbol.epsilon_symbol())) is not None:
                 out_closure = out_closure.union(self.transitions[(state, Symbol.epsilon_symbol())])
-                
+
         return out_closure
     
     def determinize(self) -> Result[FA, str]:
@@ -453,7 +462,7 @@ class FA:
         # a frozenset is a set that is immutable
         # easy, right?
         mapping: dict[frozenset, State] = {
-            frozenset(self.epsilon_closure({self.start_state})): State(0)
+            frozenset(self._epsilon_closure({self.start_state})): State(0)
         }
         
         dfa_transition_table: dict[tuple[State, Symbol], list[State]] = {}
@@ -462,7 +471,7 @@ class FA:
         counter = 0
         
         # message processing style queue
-        queue = [self.epsilon_closure({self.start_state})]
+        queue = [self._epsilon_closure({self.start_state})]
         
         while len(queue) > 0:
             # FIFO, so we pop the first element
@@ -476,7 +485,7 @@ class FA:
                     if self.transitions.get((state, symbol)) is not None:
                         next_multi_state = next_multi_state.union(self.transitions[(state, symbol)])
                 
-                next_multi_state = self.epsilon_closure(next_multi_state)
+                next_multi_state = self._epsilon_closure(next_multi_state)
                 
                 # find the state corresponding to the current multi-state
                 current_state = mapping[frozenset(current_multi_state)]
@@ -613,10 +622,7 @@ class FA:
         # then the equivalence class is a final state, and retained.
         
         new_final_states_classes: list[set[State]] = list(filter(lambda x: len(list(filter(lambda y: y in self.final_states, x))) > 0, equivalence_classes))
-        # print(f"\033[38;2;255;0;0m{equivalence_classes = }\033[0m")
-        # print(f"\033[38;2;255;0;0m{new_final_states_classes = }\033[0m")
         new_final_states = list(map(lambda x: State(position_of(equivalence_classes, key=lambda y: x == y)), new_final_states_classes))
-        # print(f"\033[38;2;255;0;0m{new_final_states = }\033[0m")
         new_transitions: dict[tuple[State, Symbol], list[State]] = {}
         
         # our method of setting the transition is indexing as we go
